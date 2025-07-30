@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cst2355_final_group/database/app_database.dart';
 import 'package:cst2355_final_group/database/airplane.dart';
 
+
 class AirplaneDetailPage extends StatefulWidget {
   final AppDatabase database;
   final Airplane? airplane; // null 表示新增，非空表示编辑
