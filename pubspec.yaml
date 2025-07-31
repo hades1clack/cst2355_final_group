@@ -61,6 +61,7 @@ dev_dependencies:
 flutter:
   assets:
     - assets/airplanes.json
+    - assets/images/sky.jpg
 
 
   # The following line ensures that the Material Icons font is

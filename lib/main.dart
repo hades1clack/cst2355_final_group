@@ -19,7 +19,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Airplane List Page Demo',
       theme: ThemeData(
-
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
       ),
       home: AirplaneListPage(database: database),
@@ -27,19 +26,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// class MyHomePage extends StatefulWidget {
-//   const MyHomePage({super.key, required this.title});
-//
-//
-//   final String title;
-//
-//   @override
-//   State<MyHomePage> createState() => _AirplaneListPageState();
-// }
-
 class AirplaneListPage extends StatefulWidget {
   final AppDatabase database;
-
   const AirplaneListPage({Key? key, required this.database}) : super(key: key);
 
   @override
@@ -47,20 +35,100 @@ class AirplaneListPage extends StatefulWidget {
 }
 
 class _AirplaneListPageState extends State<AirplaneListPage> {
+  final TextEditingController _typeController = TextEditingController();
+  final TextEditingController _passengerCountController = TextEditingController();
+  final TextEditingController _maxSpeedController = TextEditingController();
+  final TextEditingController _rangeController = TextEditingController();
+
+
   List<Airplane> airplanes = [];
+  Airplane? _selectedList;
+
 
   @override
   void initState() {
     super.initState();
-    _loadAirplanes();
+    _loadAirplanesFromDb();
   }
 
-  Future<void> _loadAirplanes() async {
+  Future<void> _loadAirplanesFromDb() async {
     final list = await widget.database.airplaneDao.getAllAirplanes();
     setState(() {
       airplanes = list;
+
+      if (_selectedList != null) {
+        _selectedList = list.firstWhere(
+              (item) => item.id == _selectedList?.id,
+          orElse: () => _selectedList!,
+        );
+      }
     });
   }
+
+  Future<void> _editAirplane() async {
+    final type = _typeController.text.trim();
+    final passengerCount = int.tryParse(_passengerCountController.text.trim()) ?? 0;
+    final maxSpeed = double.tryParse(_maxSpeedController.text.trim()) ?? 0;
+    final range = double.tryParse(_rangeController.text.trim()) ?? 0;
+
+    if (type.isNotEmpty && passengerCount > 0 && maxSpeed > 0 && range > 0) {
+      final newAirplane = Airplane(
+        id: _selectedList!.id,
+        type: type,
+        passengerCount: passengerCount,
+        maxSpeed: maxSpeed,
+        range: range,
+      );
+
+      await widget.database.airplaneDao.updateAirplane(newAirplane);
+
+      _typeController.clear();
+      _passengerCountController.clear();
+      _maxSpeedController.clear();
+      _rangeController.clear();
+
+      await _loadAirplanesFromDb();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Changes saved successfully!'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.fixed,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteAirplane(Airplane airplanes) async {
+    await widget.database.airplaneDao.deleteAirplane(airplanes);
+    setState(() {
+      if (_selectedList?.id == airplanes.id) {
+        _selectedList = null;
+      }
+    });
+    await _loadAirplanesFromDb();
+  }
+
+  void _onAirplaneSelected(Airplane airplanes) {
+    setState(() {
+      _selectedList = airplanes;
+      _typeController.text = airplanes.type;
+      _passengerCountController.text = airplanes.passengerCount.toString();
+      _maxSpeedController.text = airplanes.maxSpeed.toString();
+      _rangeController.text = airplanes.range.toString();
+    });
+  }
+
+
+  @override
+  void dispose() {
+    _typeController.dispose();
+    _passengerCountController.dispose();
+    _maxSpeedController.dispose();
+    _rangeController.dispose();
+    super.dispose();
+  }
+
 
   void _navigateToAdd() async {
     final bool? result = await Navigator.push(
@@ -68,23 +136,9 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       MaterialPageRoute(builder: (_) => AirplaneDetailPage(database: widget.database)),
     );
     if (result == true) {
-      _loadAirplanes();
+      _loadAirplanesFromDb();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Airplane added!')),
-      );
-    }
-  }
-
-  void _navigateToEdit(Airplane airplane) async {
-    final bool? result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (_) => AirplaneDetailPage(database: widget.database, airplane: airplane)),
-    );
-    if (result == true) {
-      _loadAirplanes();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Airplane updated/deleted!')),
       );
     }
   }
@@ -92,6 +146,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF0FFFF),
       appBar: AppBar(
         title: const Text('Airplane List'),
         actions: [
@@ -113,116 +168,175 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
           ),
         ],
       ),
-      body: airplanes.isEmpty
-          ? const Center(child: Text('No airplanes yet. Tap + to add one.'))
-          : ListView.builder(
-        itemCount: airplanes.length,
-        itemBuilder: (context, index) {
-          final airplane = airplanes[index];
-          return ListTile(
-            title: Text(airplane.type),
-            subtitle: Text(
-                'Passengers: ${airplane.passengerCount}, Speed: ${airplane.maxSpeed} km/h, Range: ${airplane.range} km'),
-            onTap: () => _navigateToEdit(airplane),
-          );
-        },
+      body: Container(
+        decoration: BoxDecoration(
+        image: DecorationImage(
+        image: AssetImage('assets/images/sky.jpg'),
+        fit: BoxFit.cover, // 图片填满整个容器
+          colorFilter: ColorFilter.mode(
+          Colors.white.withOpacity(0.5), // 透明度30%
+          BlendMode.dstATop,
+        ),
+        ),
+        ),
+      child: Row(
+        children: [
+          // 左侧：Airplane 列表
+          Expanded(
+            flex: 2,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+               //   child: Text('Click an airplane to view/edit it'),
+                ),
+                Expanded(
+                  child: airplanes.isEmpty
+                      ? Center(child: Text('No airplanes yet.'))
+                      : ListView.builder(
+                    itemCount: airplanes.length,
+                    itemBuilder: (context, index) {
+                      final airplane = airplanes[index];
+                      return ListTile(
+                        title: Text(airplane.type,
+                        style:TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(1, 1),
+                              blurRadius: 10,
+                              color: Colors.black.withOpacity(0.7),
+                            ),
+                          ],
+                        ),
+                        ),
+                        onTap: () {
+                          _onAirplaneSelected(airplane);
+                        },
+                        selected: _selectedList?.id == airplane.id,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 右侧：Detail & Edit/Delete
+          Expanded(
+            flex: 3,
+            child: _selectedList == null
+                ? Center(child: Text('Select an airplane to view/edit.'))
+                : _buildDetailEditor(),
+          ),
+        ],
       ),
+      ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAdd,
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
       ),
     );
   }
-}
-//
-// void main() async{
-//   WidgetsFlutterBinding.ensureInitialized();
-//   final database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
-//   runApp(MyApp(database));
-// }
-// class MyApp extends StatelessWidget {
-//   final AppDatabase database;
-//
-//   MyApp(this.database, {Key? key}) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Airplane List Page Demo',
-//       theme: ThemeData(
-//
-//         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
-//       ),
-//       home: const MyHomePage(title: 'Airplane List Page'),
-//     );
-//   }
-// }
-//
-// class MyHomePage extends StatefulWidget {
-//   const MyHomePage({super.key, required this.title});
-//
-//
-//   final String title;
-//
-//   @override
-//   State<MyHomePage> createState() => _MyHomePageState();
-// }
-//
-// class _MyHomePageState extends State<MyHomePage> {
-//
-//   late final AppDatabase db;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     initDatabase(); // 初始化数据库
-//   }
-//
-//   Future<void> initDatabase() async {
-//     db = await $FloorAppDatabase
-//         .databaseBuilder('app_database.db')
-//         .build();
-//   }
-//
-//   Future<void> _addTestAirplane() async {
-//     final airplane = Airplane(
-//       id: 1,
-//       type: 'Airbus A380',
-//       passengerCount: 853,
-//       maxSpeed: 1020,
-//       range:15700,
-//
-//     );
-//     await db.airplaneDao.insertAirplane(airplane);
-//
-//     final allPlanes = await db.airplaneDao.getAllAirplanes();
-//     print('There are total ${allPlanes.length} airplane');
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//
-//     return Scaffold(
-//       appBar: AppBar(
-//
-//         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-//
-//         title: Text(widget.title),
-//       ),
-//       body: Center(
-//
-//         child: Column(
-//
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: <Widget>[
-//             const Text('home page'),
-//             Text(
-//               '',
-//               style: Theme.of(context).textTheme.headlineMedium,
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
+  Widget _buildDetailEditor() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _typeController,
+              decoration: InputDecoration(labelText: 'Type',
+                labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+          style: TextStyle(fontSize: 18),
+              ),
+
+            TextField(
+              controller: _passengerCountController,
+              decoration: InputDecoration(labelText: 'Passenger Count',
+                labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _maxSpeedController,
+              decoration: InputDecoration(labelText: 'Max Speed',
+                labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _rangeController,
+              decoration: InputDecoration(labelText: 'Range',
+                labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: (){
+                  _showConfirmSaveDialog();
+                  },
+                  style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.blue,
+                      backgroundColor: Colors.white),
+                  child: const Text('Update'),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    _deleteAirplane(_selectedList!);
+                  },
+                  style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.red),
+                  child: const Text('Delete'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showConfirmSaveDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Save'),
+          content: const Text('Are you sure you want to save changes to this airplane?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                _editAirplane();             // Save changes
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.blue,   // 背景色
+                foregroundColor: Colors.white,  // 字体颜色
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+            ),
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  }
