@@ -7,9 +7,11 @@ abstract class CustomerDao{
   Future<List<Customer>> findAll();
 
   @insert
-  Future<void> insertCustomer(Customer customer);
+  Future<int> insertCustomer(Customer customer);
 
   @delete
   Future<void> deleteCustomer(Customer customer);
 
+  @update
+  Future<void> updateCustomer(Customer customer);
 }

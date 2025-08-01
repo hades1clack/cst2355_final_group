@@ -1,27 +1,47 @@
+// customer_page.dart
 import 'package:flutter/material.dart';
-import 'package:cst2355_final_group/repository.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'database/app_database.dart';
+import 'database/customer.dart';
+import 'database/customer_dao.dart';
+import 'repository.dart'; // For EncryptedSharedPreferences logic
 
-class OtherPage extends StatefulWidget {
+class CustomerPage extends StatefulWidget {
   @override
-  State<OtherPage> createState() => OtherPageState();
+  State<CustomerPage> createState() => _CustomerPageState();
 }
 
-class OtherPageState extends State<OtherPage> {
+class _CustomerPageState extends State<CustomerPage> {
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController birthDateController = TextEditingController();
+
+  List<Customer> customers = [];
+  Customer? selectedCustomer;
+  late AppDatabase database;
+  late CustomerDao dao;
+
   @override
   void initState() {
     super.initState();
+    initDatabase();
+    _initRepository();
+    _loadDataIntoFields();
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+  Future<void> initDatabase() async {
+    database = await $FloorAppDatabase.databaseBuilder('customer.db').build();
+    dao = database.customerDao;
+    customers = await dao.findAll();
+    setState(() {});
+  }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login successful!')),
-      );
-    });
+  Future<void> _initRepository() async {
+    await DataRepository.loadData();
+    firstNameController.text = DataRepository.firstName;
+    lastNameController.text = DataRepository.lastName;
+    addressController.text = DataRepository.address;
+    birthDateController.text = DataRepository.birthDate;
 
     firstNameController.addListener(() {
       DataRepository.firstName = firstNameController.text;
@@ -31,136 +51,192 @@ class OtherPageState extends State<OtherPage> {
       DataRepository.lastName = lastNameController.text;
       DataRepository.saveData();
     });
-    phoneController.addListener(() {
-      DataRepository.phoneNumber = phoneController.text;
+    addressController.addListener(() {
+      DataRepository.address = addressController.text;
       DataRepository.saveData();
     });
-    emailController.addListener(() {
-      DataRepository.email = emailController.text;
+    birthDateController.addListener(() {
+      DataRepository.birthDate = birthDateController.text;
       DataRepository.saveData();
-    });
-    loadDataIntoFileds();
-  }
-
-  loadDataIntoFileds() async {
-    await DataRepository.loadData();
-    setState(() {
-      firstNameController.text = DataRepository.firstName;
-      lastNameController.text = DataRepository.lastName;
-      phoneController.text = DataRepository.phoneNumber;
-      emailController.text = DataRepository.email;
     });
   }
 
-  Future<void> _launchUrl(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      _showNotSupportedDialog(url);
+  void _loadDataIntoFields() {
+    if (selectedCustomer != null) {
+      firstNameController.text = selectedCustomer!.firstName;
+      lastNameController.text = selectedCustomer!.lastName;
+      addressController.text = selectedCustomer!.address;
+      birthDateController.text = selectedCustomer!.birthDate;
     }
   }
 
-  void _showNotSupportedDialog(String url) {
+  Future<void> saveCustomer() async {
+    final fName = firstNameController.text.trim();
+    final lName = lastNameController.text.trim();
+    final addr = addressController.text.trim();
+    final bDate = birthDateController.text.trim();
+
+    if (fName.isEmpty || lName.isEmpty || addr.isEmpty || bDate.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill in all fields.')),
+      );
+      return;
+    }
+
+    if (selectedCustomer == null) {
+      // Add new customer
+      final newCustomer = Customer(
+        null, // null because ID will be auto-generated
+        fName,
+        lName,
+        addr,
+        bDate,
+      );
+      final id = await dao.insertCustomer(newCustomer);
+      final inserted = Customer(id, fName, lName, addr, bDate); // assign id after insert
+      setState(() {
+        customers.add(inserted);
+      });
+    } else {
+      // Update existing customer
+      selectedCustomer!
+        ..firstName = fName
+        ..lastName = lName
+        ..address = addr
+        ..birthDate = bDate;
+
+      await dao.updateCustomer(selectedCustomer!);
+      setState(() {
+        // Refresh UI if needed
+      });
+    }
+
+    setState(() {
+      selectedCustomer = null;
+      firstNameController.clear();
+      lastNameController.clear();
+      addressController.clear();
+      birthDateController.clear();
+    });
+  }
+
+
+  void _confirmDelete(Customer customer) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-        title: Text('URL not supported'),
-        content: Text('Cannot launch this URL:\n$url'),
+      builder: (_) => AlertDialog(
+        title: Text('Delete Customer'),
+        content: Text('Are you sure you want to delete ${customer.firstName}?'),
         actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('No')),
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
+            onPressed: () async {
+              await dao.deleteCustomer(customer);
+              customers.remove(customer);
+              if (selectedCustomer == customer) selectedCustomer = null;
+              setState(() {});
+              Navigator.pop(context);
+            },
+            child: Text('Yes'),
           ),
         ],
       ),
     );
   }
 
-  @override
-  void dispose() {
-    // Dispose controllers to prevent memory leaks
-    firstNameController.dispose();
-    lastNameController.dispose();
-    phoneController.dispose();
-    emailController.dispose();
-    super.dispose();
+  Widget _buildListView() {
+    return ListView.builder(
+      itemCount: customers.length,
+      itemBuilder: (_, index) {
+        final customer = customers[index];
+        return ListTile(
+          title: Text('${customer.firstName} ${customer.lastName}'),
+          subtitle: Text('DOB: ${customer.birthDate}'),
+          onTap: () {
+            setState(() {
+              selectedCustomer = customer;
+              _loadDataIntoFields();
+            });
+          },
+          onLongPress: () => _confirmDelete(customer),
+        );
+      },
+    );
+  }
+
+  Widget _buildForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(controller: firstNameController, decoration: InputDecoration(labelText: 'First Name')),
+        TextField(controller: lastNameController, decoration: InputDecoration(labelText: 'Last Name')),
+        TextField(controller: addressController, decoration: InputDecoration(labelText: 'Address')),
+        TextField(controller: birthDateController, decoration: InputDecoration(labelText: 'Birth Date')),
+        Row(
+          children: [
+            ElevatedButton(onPressed: saveCustomer, child: Text(selectedCustomer == null ? 'Add' : 'Update')),
+            SizedBox(width: 16),
+            if (selectedCustomer != null)
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    selectedCustomer = null;
+                    firstNameController.clear();
+                    lastNameController.clear();
+                    addressController.clear();
+                    birthDateController.clear();
+                  });
+                },
+                child: Text('Cancel'),
+              )
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResponsiveLayout() {
+    var size = MediaQuery.of(context).size;
+    if (size.width > 720) {
+      return Row(
+        children: [
+          Expanded(child: _buildListView()),
+          VerticalDivider(),
+          Expanded(child: SingleChildScrollView(child: _buildForm())),
+        ],
+      );
+    } else {
+      return selectedCustomer == null
+          ? _buildListView()
+          : SingleChildScrollView(child: _buildForm());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Text(
-                'Welcome Back ${DataRepository.loginName}',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              TextField(
-                controller: firstNameController,
-                decoration: InputDecoration(labelText: "FirstName"),
-              ),
-              TextField(
-                controller: lastNameController,
-                decoration: InputDecoration(labelText: "LastName"),
-              ),
-              Row(
-                children: [
-                  Flexible(
-                    child: TextField(
-                      controller: phoneController,
-                      decoration: InputDecoration(labelText: "Phone"),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.phone),
-                    onPressed: () {
-                      final phone = phoneController.text.trim();
-                      if (phone.isNotEmpty) {
-                        _launchUrl('tel:$phone');
-                      }
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.sms),
-                    onPressed: () {
-                      final phone = phoneController.text.trim();
-                      if (phone.isNotEmpty) {
-                        _launchUrl('sms:$phone');
-                      }
-                    },
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Flexible(
-                    child: TextField(
-                      controller: emailController,
-                      decoration: InputDecoration(labelText: "Email"),
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.email),
-                    onPressed: () {
-                      final email = emailController.text.trim();
-                      if (email.isNotEmpty) {
-                        _launchUrl('mailto:$email');
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ],
+      appBar: AppBar(
+        title: Text("Customer List"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.info),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: Text('Instructions'),
+                  content: Text('Tap a customer to update, long press to delete.'),
+                  actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('OK'))],
+                ),
+              );
+            },
           ),
-        ),
+        ],
       ),
-    ); //Use a Scaffold to layout a page with an AppBar and main body region
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: _buildResponsiveLayout(),
+      ),
+    );
   }
 }

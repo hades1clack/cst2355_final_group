@@ -36,7 +36,7 @@ class OtherPageState extends State<OtherPage> {
       DataRepository.saveData();
     });
     emailController.addListener(() {
-      DataRepository.email = emailController.text;
+      DataRepository.address = emailController.text;//*****************
       DataRepository.saveData();
     });
     loadDataIntoFileds();
@@ -48,7 +48,7 @@ class OtherPageState extends State<OtherPage> {
       firstNameController.text = DataRepository.firstName;
       lastNameController.text = DataRepository.lastName;
       phoneController.text = DataRepository.phoneNumber;
-      emailController.text = DataRepository.email;
+      emailController.text = DataRepository.address;//*******************
     });
   }
 
@@ -98,7 +98,7 @@ class OtherPageState extends State<OtherPage> {
           child: Column(
             children: [
               Text(
-                'Welcome Back ${DataRepository.loginName}',
+                'Welcome Back ${DataRepository.firstName}',//***************
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               TextField(

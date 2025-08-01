@@ -96,7 +96,7 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Customer` (`id` INTEGER NOT NULL, `firstName` TEXT NOT NULL, `lastName` TEXT NOT NULL, `address` TEXT NOT NULL, `birthDate` TEXT NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Customer` (`id` INTEGER, `firstName` TEXT NOT NULL, `lastName` TEXT NOT NULL, `address` TEXT NOT NULL, `birthDate` TEXT NOT NULL, PRIMARY KEY (`id`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -125,6 +125,17 @@ class _$CustomerDao extends CustomerDao {
                   'address': item.address,
                   'birthDate': item.birthDate
                 }),
+        _customerUpdateAdapter = UpdateAdapter(
+            database,
+            'Customer',
+            ['id'],
+            (Customer item) => <String, Object?>{
+                  'id': item.id,
+                  'firstName': item.firstName,
+                  'lastName': item.lastName,
+                  'address': item.address,
+                  'birthDate': item.birthDate
+                }),
         _customerDeletionAdapter = DeletionAdapter(
             database,
             'Customer',
@@ -145,22 +156,30 @@ class _$CustomerDao extends CustomerDao {
 
   final InsertionAdapter<Customer> _customerInsertionAdapter;
 
+  final UpdateAdapter<Customer> _customerUpdateAdapter;
+
   final DeletionAdapter<Customer> _customerDeletionAdapter;
 
   @override
   Future<List<Customer>> findAll() async {
     return _queryAdapter.queryList('select * from Customer',
         mapper: (Map<String, Object?> row) => Customer(
-            row['id'] as int,
+            row['id'] as int?,
             row['firstName'] as String,
             row['lastName'] as String,
-            row['birthDate'] as String,
-            row['address'] as String));
+            row['address'] as String,
+            row['birthDate'] as String));
   }
 
   @override
-  Future<void> insertCustomer(Customer customer) async {
-    await _customerInsertionAdapter.insert(customer, OnConflictStrategy.abort);
+  Future<int> insertCustomer(Customer customer) {
+    return _customerInsertionAdapter.insertAndReturnId(
+        customer, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<void> updateCustomer(Customer customer) async {
+    await _customerUpdateAdapter.update(customer, OnConflictStrategy.abort);
   }
 
   @override

@@ -5,23 +5,21 @@ class DataRepository{
   static String firstName='';
   static String lastName='';
   static String phoneNumber='';
-  static String email='';
-  static String loginName='';
+  static String address='';
+  static String birthDate='';
 
   static saveData() async{
     await _encryptedPrefs.setString('firstName', firstName);
     await _encryptedPrefs.setString('lastName', lastName);
-    await _encryptedPrefs.setString('phoneNumber', phoneNumber);
-    await _encryptedPrefs.setString('email', email);
-    await _encryptedPrefs.setString('loginName', loginName);
+    await _encryptedPrefs.setString('address', address);
+    await _encryptedPrefs.setString('birthDate', birthDate);
 
   }
   static loadData() async{
     firstName=await _encryptedPrefs.getString('firstName');
     lastName=await _encryptedPrefs.getString('lastName');
-    phoneNumber=await _encryptedPrefs.getString('phoneNumber');
-    email=await _encryptedPrefs.getString('email');
-    loginName = await _encryptedPrefs.getString("loginName") ;
+    address=await _encryptedPrefs.getString('address');
+    birthDate = await _encryptedPrefs.getString("birthDate") ;
 
   }
 }
