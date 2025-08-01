@@ -1,0 +1,20 @@
+{
+  "string": "Impressionnant !",
+  "string_with_interpolation": "Salut $name, comment ça va ?",
+  "First_Name": "Prénom",
+  "Last_Name": "Nom de famille",
+  "Address": "Adresse",
+  "Birth_Date": "Date de naissance",
+  "add": "ajouter",
+  "submit": "soumettre",
+  "update": "mettre à jour",
+  "delete": "supprimer",
+  "customer_add_notice": "Vous avez ajouté un nouveau client avec succès.",
+  "selection_question": "Voulez-vous utiliser la dernière saisie ?",
+  "Yes": "Oui",
+  "No": "Non",
+  "customer": "Client",
+  "airplane": "Avion",
+  "flights": "Vols",
+  "reservation": "Réservation"
+}
