@@ -1,0 +1,21 @@
+{
+  "string": "Impressive!",
+  "string_with_interpolation": "Hey $name, how are you?",
+  "First_Name": "First Name",
+  "Last_Name": "Last Name",
+  "Address": "Address",
+  "Birth_Date": "Birth Date",
+  "add": "add",
+  "submit": "submit",
+  "update": "update",
+  "delete": "delete",
+  "customer_add_notice": "You have successfully add a new customer.",
+  "selection_question": "Do you want to use last input?",
+  "Yes": "Yes",
+  "No": "No",
+  "customer": "Customer",
+  "airplane": "Airplane",
+  "flights": "Flights",
+  "reservation": "Reservation"
+
+}
