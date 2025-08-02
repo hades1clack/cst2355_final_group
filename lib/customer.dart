@@ -1,242 +1,276 @@
-// customer_page.dart
 import 'package:flutter/material.dart';
+import 'AppLocalizations.dart';
 import 'database/app_database.dart';
 import 'database/customer.dart';
 import 'database/customer_dao.dart';
-import 'repository.dart'; // For EncryptedSharedPreferences logic
+import 'customer_form.dart';
 
 class CustomerPage extends StatefulWidget {
+  final Locale locale;
+  final Function(Locale) onLanguageChanged;
+
+  const CustomerPage({
+    super.key,
+    required this.locale,
+    required this.onLanguageChanged,
+  });
+
   @override
   State<CustomerPage> createState() => _CustomerPageState();
 }
 
 class _CustomerPageState extends State<CustomerPage> {
-  final TextEditingController firstNameController = TextEditingController();
-  final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController birthDateController = TextEditingController();
-
-  List<Customer> customers = [];
-  Customer? selectedCustomer;
   late AppDatabase database;
   late CustomerDao dao;
+  List<Customer> customers = [];
+  Customer? selectedCustomer;
+  var _isDaoReady;
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
+  final addressController = TextEditingController();
+  final birthDateController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    initDatabase();
-    _initRepository();
-    _loadDataIntoFields();
+    _initDatabase();
   }
 
-  Future<void> initDatabase() async {
+  // Future<void> _initDatabase() async {
+  //   database = await $FloorAppDatabase.databaseBuilder('customer.db').build();
+  //   dao = database.customerDao;
+  //   await _refreshCustomers();
+  // }
+  Future<void> _initDatabase() async {
+    print("Starting DB init");
     database = await $FloorAppDatabase.databaseBuilder('customer.db').build();
+    print("DB built");
     dao = database.customerDao;
+    print("DAO assigned");
+    customers = await dao.findAll();
+    print("Loaded customers count: ${customers.length}");
+    setState(() {
+      _isDaoReady = true; // or _isLoading = false
+    });
+    print("Database initialized, isDaoReady = $_isDaoReady");
+  }
+
+  Future<void> _refreshCustomers() async {
     customers = await dao.findAll();
     setState(() {});
   }
 
-  Future<void> _initRepository() async {
-    await DataRepository.loadData();
-    firstNameController.text = DataRepository.firstName;
-    lastNameController.text = DataRepository.lastName;
-    addressController.text = DataRepository.address;
-    birthDateController.text = DataRepository.birthDate;
-
-    firstNameController.addListener(() {
-      DataRepository.firstName = firstNameController.text;
-      DataRepository.saveData();
-    });
-    lastNameController.addListener(() {
-      DataRepository.lastName = lastNameController.text;
-      DataRepository.saveData();
-    });
-    addressController.addListener(() {
-      DataRepository.address = addressController.text;
-      DataRepository.saveData();
-    });
-    birthDateController.addListener(() {
-      DataRepository.birthDate = birthDateController.text;
-      DataRepository.saveData();
-    });
+  void _clearForm() {
+    firstNameController.clear();
+    lastNameController.clear();
+    addressController.clear();
+    birthDateController.clear();
   }
 
-  void _loadDataIntoFields() {
-    if (selectedCustomer != null) {
-      firstNameController.text = selectedCustomer!.firstName;
-      lastNameController.text = selectedCustomer!.lastName;
-      addressController.text = selectedCustomer!.address;
-      birthDateController.text = selectedCustomer!.birthDate;
-    }
+  void _populateForm(Customer customer) {
+    firstNameController.text = customer.firstName;
+    lastNameController.text = customer.lastName;
+    addressController.text = customer.address;
+    birthDateController.text = customer.birthDate;
   }
 
-  Future<void> saveCustomer() async {
-    final fName = firstNameController.text.trim();
-    final lName = lastNameController.text.trim();
-    final addr = addressController.text.trim();
-    final bDate = birthDateController.text.trim();
+  Future<void> _updateCustomer() async {
+    if (selectedCustomer == null) return;
 
-    if (fName.isEmpty || lName.isEmpty || addr.isEmpty || bDate.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill in all fields.')),
-      );
-      return;
-    }
+    selectedCustomer!
+      ..firstName = firstNameController.text.trim()
+      ..lastName = lastNameController.text.trim()
+      ..address = addressController.text.trim()
+      ..birthDate = birthDateController.text.trim();
 
-    if (selectedCustomer == null) {
-      // Add new customer
-      final newCustomer = Customer(
-        null, // null because ID will be auto-generated
-        fName,
-        lName,
-        addr,
-        bDate,
-      );
-      final id = await dao.insertCustomer(newCustomer);
-      final inserted = Customer(id, fName, lName, addr, bDate); // assign id after insert
-      setState(() {
-        customers.add(inserted);
-      });
-    } else {
-      // Update existing customer
-      selectedCustomer!
-        ..firstName = fName
-        ..lastName = lName
-        ..address = addr
-        ..birthDate = bDate;
-
-      await dao.updateCustomer(selectedCustomer!);
-      setState(() {
-        // Refresh UI if needed
-      });
-    }
-
-    setState(() {
-      selectedCustomer = null;
-      firstNameController.clear();
-      lastNameController.clear();
-      addressController.clear();
-      birthDateController.clear();
-    });
+    await dao.updateCustomer(selectedCustomer!);
+    await _refreshCustomers();
   }
 
-
-  void _confirmDelete(Customer customer) {
-    showDialog(
+  Future<void> _confirmDelete(Customer customer) async {
+    final t = AppLocalizations.of(context)!;
+    final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Delete Customer'),
-        content: Text('Are you sure you want to delete ${customer.firstName}?'),
+        title: Text(t.translate('confirm_delete') ?? 'Confirm Delete'),
+        content: Text('${t.translate('delete_customer')} ${customer.firstName}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('No')),
           TextButton(
-            onPressed: () async {
-              await dao.deleteCustomer(customer);
-              customers.remove(customer);
-              if (selectedCustomer == customer) selectedCustomer = null;
-              setState(() {});
-              Navigator.pop(context);
-            },
-            child: Text('Yes'),
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(t.translate('cancel') ?? 'Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(t.translate('delete') ?? 'Delete'),
           ),
         ],
       ),
     );
+    if (confirm == true) {
+      await dao.deleteCustomer(customer);
+      selectedCustomer = null;
+      _clearForm();
+      await _refreshCustomers();
+    }
   }
 
-  Widget _buildListView() {
-    return ListView.builder(
-      itemCount: customers.length,
-      itemBuilder: (_, index) {
-        final customer = customers[index];
-        return ListTile(
-          title: Text('${customer.firstName} ${customer.lastName}'),
-          subtitle: Text('DOB: ${customer.birthDate}'),
-          onTap: () {
-            setState(() {
-              selectedCustomer = customer;
-              _loadDataIntoFields();
-            });
-          },
-          onLongPress: () => _confirmDelete(customer),
-        );
-      },
-    );
-  }
-
-  Widget _buildForm() {
+  Widget _buildCustomerList(AppLocalizations t) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(controller: firstNameController, decoration: InputDecoration(labelText: 'First Name')),
-        TextField(controller: lastNameController, decoration: InputDecoration(labelText: 'Last Name')),
-        TextField(controller: addressController, decoration: InputDecoration(labelText: 'Address')),
-        TextField(controller: birthDateController, decoration: InputDecoration(labelText: 'Birth Date')),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            ElevatedButton(onPressed: saveCustomer, child: Text(selectedCustomer == null ? 'Add' : 'Update')),
-            SizedBox(width: 16),
-            if (selectedCustomer != null)
-              ElevatedButton(
-                onPressed: () {
+            Text(t.translate('customer_list') ?? 'Customer List',
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CustomerFormPage(
+                      dao: dao,
+                      onSaved: _refreshCustomers,
+                      locale: widget.locale,
+                      onLanguageChanged: widget.onLanguageChanged,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: Text(t.translate('add') ?? 'Add'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: customers.isEmpty
+              ? Center(child: Text(t.translate('no_customers') ?? 'No customers available'))
+              : ListView.builder(
+            itemCount: customers.length,
+            itemBuilder: (context, index) {
+              final c = customers[index];
+              return ListTile(
+                title: Text('${c.firstName} ${c.lastName}'),
+                subtitle: Text(c.address),
+                onTap: () {
                   setState(() {
-                    selectedCustomer = null;
-                    firstNameController.clear();
-                    lastNameController.clear();
-                    addressController.clear();
-                    birthDateController.clear();
+                    selectedCustomer = c;
+                    _populateForm(c);
                   });
                 },
-                child: Text('Cancel'),
-              )
-          ],
+              );
+            },
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildResponsiveLayout() {
-    var size = MediaQuery.of(context).size;
-    if (size.width > 720) {
+  Widget _buildDetails(AppLocalizations t) {
+    if (selectedCustomer == null) {
+      return const Center(child: Text(''));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: ListView(
+        children: [
+          TextFormField(
+            controller: firstNameController,
+            decoration: InputDecoration(labelText: t.translate('first_name') ?? 'First Name'),
+          ),
+          TextFormField(
+            controller: lastNameController,
+            decoration: InputDecoration(labelText: t.translate('last_name') ?? 'Last Name'),
+          ),
+          TextFormField(
+            controller: addressController,
+            decoration: InputDecoration(labelText: t.translate('address') ?? 'Address'),
+          ),
+          TextFormField(
+            controller: birthDateController,
+            decoration: InputDecoration(labelText: t.translate('birth_date') ?? 'Birth Date'),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: _updateCustomer,
+                child: Text(t.translate('update') ?? 'Update'),
+              ),
+              const SizedBox(width: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (selectedCustomer != null) {
+                    _confirmDelete(selectedCustomer!);
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: Text(t.translate('delete') ?? 'Delete'),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _responsiveLayout(AppLocalizations t) {
+    final size = MediaQuery.of(context).size;
+    if (size.width > size.height && size.width > 720) {
       return Row(
         children: [
-          Expanded(child: _buildListView()),
-          VerticalDivider(),
-          Expanded(child: SingleChildScrollView(child: _buildForm())),
+          Expanded(flex: 2, child: _buildCustomerList(t)),
+          Expanded(flex: 2, child: _buildDetails(t)),
         ],
       );
     } else {
       return selectedCustomer == null
-          ? _buildListView()
-          : SingleChildScrollView(child: _buildForm());
+          ? _buildCustomerList(t)
+          : _buildDetails(t);
     }
+  }
+
+  Widget _buildLanguageDropdown() {
+    return DropdownButtonHideUnderline(
+      child: DropdownButton<Locale>(
+        value: widget.locale,
+        icon: const Icon(Icons.language, color: Colors.white),
+        dropdownColor: Colors.blue,
+        onChanged: (Locale? locale) {
+          if (locale != null) widget.onLanguageChanged(locale);
+        },
+        items: const [
+          DropdownMenuItem(value: Locale('en'), child: Text('English')),
+          DropdownMenuItem(value: Locale('fr'), child: Text('Français')),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text("Customer List"),
+        title: Text(t.translate('customer_list') ?? 'Customer List'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.info),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => AlertDialog(
-                  title: Text('Instructions'),
-                  content: Text('Tap a customer to update, long press to delete.'),
-                  actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text('OK'))],
-                ),
-              );
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: _buildLanguageDropdown(),
           ),
         ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: _buildResponsiveLayout(),
-      ),
+      body: _responsiveLayout(t),
     );
+  }
+
+  @override
+  void dispose() {
+    firstNameController.dispose();
+    lastNameController.dispose();
+    addressController.dispose();
+    birthDateController.dispose();
+    super.dispose();
   }
 }

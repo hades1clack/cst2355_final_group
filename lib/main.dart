@@ -4,7 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'AppLocalizations.dart'; // Your localization class
 
 // These will be uncommented once the other files are added
-// import 'customer.dart';
+ import 'customer.dart';
 // import 'airplane.dart';
 // import 'flights.dart';
 // import 'reservation.dart';
@@ -130,7 +130,10 @@ class HomePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // These will be replaced with real navigation once pages are merged
-                buildImageButton(context, t.translate('customer') ?? 'Customer (TODO)', Placeholder()),
+                buildImageButton(context, t.translate('customer') ?? 'Customer (TODO)', CustomerPage(
+                  locale:locale,
+                  onLanguageChanged: onLanguageChanged,
+                )),
                 buildImageButton(context, t.translate('airplane') ?? 'Airplane (TODO)', Placeholder()),
                 buildImageButton(context, t.translate('flights') ?? 'Flights (TODO)', Placeholder()),
                 buildImageButton(context, t.translate('reservation') ?? 'Reservation (TODO)', Placeholder()),
@@ -153,7 +156,7 @@ class HomePage extends StatelessWidget {
         child: Ink(
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/button_bg.png'), // your button background image file
+              image: AssetImage('assets/button_bg.png'), // button background image file
               fit: BoxFit.cover,
             ),
             borderRadius: BorderRadius.circular(8),
