@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cst2355_final_group/database/app_database.dart';
 import 'package:cst2355_final_group/database/airplane.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-
+/// Airplane detail page used for adding or editing airplane information.
+/// Supports input for airplane type, passenger count, max speed and range.
 class AirplaneDetailPage extends StatefulWidget {
+  /// The database instance used for airplane data operations.
   final AppDatabase database;
-  final Airplane? airplane; // null 表示新增，非空表示编辑
-
+  /// The airplane being edited; null indicates adding a new airplane.
+  final Airplane? airplane;
+  /// Constructor accepting the database and optionally an existing airplane to edit.
   const AirplaneDetailPage({Key? key, required this.database, this.airplane}) : super(key: key);
 
   @override
@@ -14,22 +18,42 @@ class AirplaneDetailPage extends StatefulWidget {
 }
 
 class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
+  /// Global key for the form to validate input fields.
   final _formKey = GlobalKey<FormState>();
-
+  /// Controller for the airplane type input field.
   late TextEditingController _typeController;
+  /// Controller for the passenger count input field.
   late TextEditingController _passengersController;
+  /// Controller for the max speed input field.
   late TextEditingController _maxSpeedController;
+  /// Controller for the range input field.
   late TextEditingController _rangeController;
-
+  /// Secure storage to save and load last input values for convenience.
+  final _secureStorage = const FlutterSecureStorage();
+  /// Controller for the max speed input field.
   bool get isEditMode => widget.airplane != null;
 
   @override
   void initState() {
     super.initState();
+    // Initialize controllers with existing airplane data if editing,
+    // or empty strings if adding a new airplane.
     _typeController = TextEditingController(text: widget.airplane?.type ?? '');
     _passengersController = TextEditingController(text: widget.airplane?.passengerCount.toString() ?? '');
     _maxSpeedController = TextEditingController(text: widget.airplane?.maxSpeed.toString() ?? '');
     _rangeController = TextEditingController(text: widget.airplane?.range.toString() ?? '');
+    // Load last saved input values from secure storage when adding new airplane.
+    if (!isEditMode) {
+      _loadLastInput();
+    }
+  }
+
+  /// Loads the last input values from secure storage and populates the fields.
+  Future<void> _loadLastInput() async {
+    _typeController.text = await _secureStorage.read(key: 'type') ?? '';
+    _passengersController.text = await _secureStorage.read(key: 'passengerCount') ?? '';
+    _maxSpeedController.text = await _secureStorage.read(key: 'maxSpeed') ?? '';
+    _rangeController.text = await _secureStorage.read(key: 'range') ?? '';
   }
 
   @override
@@ -40,7 +64,9 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
     _rangeController.dispose();
     super.dispose();
   }
-
+  /// Validates input and saves airplane data to the database.
+  /// If editing, updates existing airplane; otherwise inserts new.
+  /// Also saves current inputs to secure storage for future reuse.
   Future<void> _saveAirplane() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -60,18 +86,24 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
     if (isEditMode) {
       await widget.database.airplaneDao.updateAirplane(airplane);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Airplane updated')),
+        const SnackBar(content: Text('Airplane updated'.tr())),
       );
     } else {
       await widget.database.airplaneDao.insertAirplane(airplane);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Airplane added')),
+        const SnackBar(content: Text('Airplane added'.tr())),
       );
     }
-
-    Navigator.pop(context, true); // 通知列表刷新
+    // Save current inputs securely for next time when adding new.
+    await _secureStorage.write(key: 'type', value: type);
+    await _secureStorage.write(key: 'passengerCount', value: passengers.toString());
+    await _secureStorage.write(key: 'maxSpeed', value: maxSpeed.toString());
+    await _secureStorage.write(key: 'range', value: range.toString());
+    // Close this page and signal successful save with true.
+    Navigator.pop(context, true);
   }
 
+  /// Prompts user for confirmation and deletes the current airplane if confirmed.
   Future<void> _deleteAirplane() async {
     if (!isEditMode) return;
 
@@ -86,7 +118,6 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
         ],
       ),
     );
-
     if (confirmed == true) {
       await widget.database.airplaneDao.deleteAirplane(widget.airplane!);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -96,6 +127,7 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
     }
   }
 
+  /// Builds a styled text form field with label, icon, validation, and keyboard type.
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -129,7 +161,7 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditMode ? 'Edit Airplane' : 'Add Airplane'),
+        title: Text(isEditMode ? 'Edit Airplane'.tr() : 'Add Airplane'.tr()),
         backgroundColor: Colors.lightBlue.shade700,
       ),
       body: Stack(
@@ -151,10 +183,16 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
                 children: [
                   _buildTextField(
                     controller: _typeController,
-                    label: 'Airplane Type',
+                    label: 'Airplane Type'.tr(),
                     icon: Icons.flight_takeoff,
-                    validator: (value) =>
-                    (value == null || value.isEmpty) ? 'Please enter airplane type' : null,
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return 'Please enter airplane type'.tr();
+                      final regex = RegExp(r'^[a-zA-Z0-9\s\-]+$');
+                      if (!regex.hasMatch(value))
+                        return 'Only letters and numbers allowed'.tr();
+                      return null;
+                    },
                   ),
                   _buildTextField(
                     controller: _passengersController,
@@ -163,7 +201,9 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Please enter passenger count';
-                      if (int.tryParse(value) == null) return 'Must be a valid number';
+                      final number = double.tryParse(value);
+                      if (number == null) return 'Must be a valid number';
+                      if (number <= 0) return 'Must be greater than 0';
                       return null;
                     },
                   ),
@@ -174,7 +214,9 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Please enter max speed';
-                      if (double.tryParse(value) == null) return 'Must be a valid number';
+                      final number = double.tryParse(value);
+                      if (number == null) return 'Must be a valid number';
+                      if (number <= 0) return 'Must be greater than 0';
                       return null;
                     },
                   ),
@@ -185,7 +227,9 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value == null || value.isEmpty) return 'Please enter range';
-                      if (double.tryParse(value) == null) return 'Must be a valid number';
+                      final number = double.tryParse(value);
+                      if (number == null) return 'Must be a valid number';
+                      if (number <= 0) return 'Must be greater than 0';
                       return null;
                     },
                   ),
@@ -231,156 +275,3 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
     );
   }
 }
-// class AirplaneDetailPage extends StatefulWidget {
-//   final AppDatabase database;
-//   final Airplane? airplane; // null means add mode, non-null means edit mode
-//
-//   const AirplaneDetailPage({Key? key, required this.database, this.airplane}) : super(key: key);
-//
-//   @override
-//   _AirplaneDetailPageState createState() => _AirplaneDetailPageState();
-// }
-//
-// class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
-//   final _formKey = GlobalKey<FormState>();
-//   late TextEditingController _typeController;
-//   late TextEditingController _passengersController;
-//   late TextEditingController _maxSpeedController;
-//   late TextEditingController _rangeController;
-//
-//   bool get isEditMode => widget.airplane != null;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _typeController = TextEditingController(text: widget.airplane?.type ?? '');
-//     _passengersController =
-//         TextEditingController(text: widget.airplane?.passengerCount.toString() ?? '');
-//     _maxSpeedController =
-//         TextEditingController(text: widget.airplane?.maxSpeed.toString() ?? '');
-//     _rangeController = TextEditingController(text: widget.airplane?.range.toString() ?? '');
-//   }
-//
-//   @override
-//   void dispose() {
-//     _typeController.dispose();
-//     _passengersController.dispose();
-//     _maxSpeedController.dispose();
-//     _rangeController.dispose();
-//     super.dispose();
-//   }
-//
-//   Future<void> _saveAirplane() async {
-//     if (!_formKey.currentState!.validate()) return;
-//
-//     final type = _typeController.text.trim();
-//     final passengers = int.parse(_passengersController.text.trim());
-//     final maxSpeed = double.parse(_maxSpeedController.text.trim());
-//     final range = double.parse(_rangeController.text.trim());
-//
-//     final airplane = Airplane(
-//       id: widget.airplane?.id,
-//       type: type,
-//       passengerCount: passengers,
-//       maxSpeed: maxSpeed,
-//       range: range,
-//     );
-//
-//     if (isEditMode) {
-//       await widget.database.airplaneDao.updateAirplane(airplane);
-//       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Airplane updated')));
-//     } else {
-//       await widget.database.airplaneDao.insertAirplane(airplane);
-//       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Airplane added')));
-//     }
-//
-//     Navigator.pop(context, true); // 返回true通知列表刷新
-//   }
-//
-//   Future<void> _deleteAirplane() async {
-//     if (!isEditMode) return;
-//
-//     final confirmed = await showDialog<bool>(
-//       context: context,
-//       builder: (_) => AlertDialog(
-//         title: const Text('Confirm Delete'),
-//         content: Text('Delete airplane "${widget.airplane!.type}"?'),
-//         actions: [
-//           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
-//           TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Yes')),
-//         ],
-//       ),
-//     );
-//
-//     if (confirmed == true) {
-//       await widget.database.airplaneDao.deleteAirplane(widget.airplane!);
-//       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Airplane deleted')));
-//       Navigator.pop(context, true);
-//     }
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text(isEditMode ? 'Edit Airplane' : 'Add Airplane'),
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16),
-//         child: Form(
-//           key: _formKey,
-//           child: ListView(
-//             children: [
-//               TextFormField(
-//                 controller: _typeController,
-//                 decoration: const InputDecoration(labelText: 'Airplane Type'),
-//                 validator: (value) => value == null || value.isEmpty ? 'Required' : null,
-//               ),
-//               TextFormField(
-//                 controller: _passengersController,
-//                 decoration: const InputDecoration(labelText: 'Passengers'),
-//                 keyboardType: TextInputType.number,
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) return 'Required';
-//                   if (int.tryParse(value) == null) return 'Must be a number';
-//                   return null;
-//                 },
-//               ),
-//               TextFormField(
-//                 controller: _maxSpeedController,
-//                 decoration: const InputDecoration(labelText: 'Max Speed (km/h)'),
-//                 keyboardType: TextInputType.number,
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) return 'Required';
-//                   if (int.tryParse(value) == null) return 'Must be a number';
-//                   return null;
-//                 },
-//               ),
-//               TextFormField(
-//                 controller: _rangeController,
-//                 decoration: const InputDecoration(labelText: 'Range (km)'),
-//                 keyboardType: TextInputType.number,
-//                 validator: (value) {
-//                   if (value == null || value.isEmpty) return 'Required';
-//                   if (int.tryParse(value) == null) return 'Must be a number';
-//                   return null;
-//                 },
-//               ),
-//               const SizedBox(height: 20),
-//               ElevatedButton(
-//                 onPressed: _saveAirplane,
-//                 child: Text(isEditMode ? 'Update' : 'Add'),
-//               ),
-//               if (isEditMode)
-//                 ElevatedButton(
-//                   onPressed: _deleteAirplane,
-//                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-//                   child: const Text('Delete'),
-//                 ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }

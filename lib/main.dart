@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:cst2355_final_group/database/app_database.dart';
 import 'package:cst2355_final_group/database/airplane.dart';
 import 'package:cst2355_final_group/pages/airplane_detail_page.dart';
-
-
+import 'package:flutter/services.dart';
+/// Entry point of the app.
+/// Initializes the database and launches the application.
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   final database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
   runApp(MyApp(database));
 }
+/// Root widget of the app.
 class MyApp extends StatelessWidget {
+  /// The database instance passed into the app.
   final AppDatabase database;
-
   MyApp(this.database, {Key? key}) : super(key: key);
 
   @override
@@ -25,8 +27,9 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
+/// Main page displaying the list of airplanes.
 class AirplaneListPage extends StatefulWidget {
+  /// The database instance used to retrieve airplane data.
   final AppDatabase database;
   const AirplaneListPage({Key? key, required this.database}) : super(key: key);
 
@@ -35,22 +38,25 @@ class AirplaneListPage extends StatefulWidget {
 }
 
 class _AirplaneListPageState extends State<AirplaneListPage> {
+  /// Controller for the airplane type input field.
   final TextEditingController _typeController = TextEditingController();
+  /// Controller for the passenger count input field.
   final TextEditingController _passengerCountController = TextEditingController();
+  /// Controller for the maximum speed input field.
   final TextEditingController _maxSpeedController = TextEditingController();
+  /// Controller for the range input field.
   final TextEditingController _rangeController = TextEditingController();
-
-
+  /// List of airplanes fetched from the database.
   List<Airplane> airplanes = [];
+  /// Currently selected airplane from the list.
   Airplane? _selectedList;
-
 
   @override
   void initState() {
     super.initState();
     _loadAirplanesFromDb();
   }
-
+  /// Loads all airplane records from the database.
   Future<void> _loadAirplanesFromDb() async {
     final list = await widget.database.airplaneDao.getAllAirplanes();
     setState(() {
@@ -64,7 +70,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       }
     });
   }
-
+  /// Updates the selected airplane with new values from input fields.
   Future<void> _editAirplane() async {
     final type = _typeController.text.trim();
     final passengerCount = int.tryParse(_passengerCountController.text.trim()) ?? 0;
@@ -88,7 +94,6 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       _rangeController.clear();
 
       await _loadAirplanesFromDb();
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Changes saved successfully!'),
@@ -98,7 +103,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       );
     }
   }
-
+  /// Deletes a specific airplane from the database.
   Future<void> _deleteAirplane(Airplane airplanes) async {
     await widget.database.airplaneDao.deleteAirplane(airplanes);
     setState(() {
@@ -108,7 +113,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
     });
     await _loadAirplanesFromDb();
   }
-
+  /// Handles selection of an airplane from the list.
   void _onAirplaneSelected(Airplane airplanes) {
     setState(() {
       _selectedList = airplanes;
@@ -118,8 +123,6 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       _rangeController.text = airplanes.range.toString();
     });
   }
-
-
   @override
   void dispose() {
     _typeController.dispose();
@@ -128,8 +131,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
     _rangeController.dispose();
     super.dispose();
   }
-
-
+  /// Navigates to the airplane detail page to add a new airplane.
   void _navigateToAdd() async {
     final bool? result = await Navigator.push(
       context,
@@ -172,16 +174,15 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
         decoration: BoxDecoration(
         image: DecorationImage(
         image: AssetImage('assets/images/sky.jpg'),
-        fit: BoxFit.cover, // 图片填满整个容器
+        fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(
-          Colors.white.withOpacity(0.5), // 透明度30%
+          Colors.white.withOpacity(0.5),
           BlendMode.dstATop,
         ),
         ),
         ),
       child: Row(
         children: [
-          // 左侧：Airplane 列表
           Expanded(
             flex: 2,
             child: Column(
@@ -189,7 +190,6 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-               //   child: Text('Click an airplane to view/edit it'),
                 ),
                 Expanded(
                   child: airplanes.isEmpty
@@ -224,8 +224,6 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
               ],
             ),
           ),
-
-          // 右侧：Detail & Edit/Delete
           Expanded(
             flex: 3,
             child: _selectedList == null
@@ -235,13 +233,13 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
         ],
       ),
       ),
-
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToAdd,
         child: Icon(Icons.add),
       ),
     );
   }
+  /// Builds the editor for selected airplane details.
   Widget _buildDetailEditor() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -254,9 +252,11 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
               decoration: InputDecoration(labelText: 'Type',
                 labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 \-]')),
+              ],
           style: TextStyle(fontSize: 18),
               ),
-
             TextField(
               controller: _passengerCountController,
               decoration: InputDecoration(labelText: 'Passenger Count',
@@ -307,7 +307,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       ),
     );
   }
-
+  /// Shows a confirmation dialog before saving changes.
   void _showConfirmSaveDialog() {
     showDialog(
       context: context,
@@ -320,11 +320,11 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
               child: const Text('Save'),
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
-                _editAirplane();             // Save changes
+                _editAirplane();
               },
               style: TextButton.styleFrom(
-                backgroundColor: Colors.blue,   // 背景色
-                foregroundColor: Colors.white,  // 字体颜色
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
             ),
