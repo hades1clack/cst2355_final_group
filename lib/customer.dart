@@ -42,17 +42,12 @@ class _CustomerPageState extends State<CustomerPage> {
   //   await _refreshCustomers();
   // }
   Future<void> _initDatabase() async {
-    print("Starting DB init");
     database = await $FloorAppDatabase.databaseBuilder('customer.db').build();
-    print("DB built");
     dao = database.customerDao;
-    print("DAO assigned");
     customers = await dao.findAll();
-    print("Loaded customers count: ${customers.length}");
     setState(() {
-      _isDaoReady = true; // or _isLoading = false
+      // _isDaoReady = true; // or _isLoading = false
     });
-    print("Database initialized, isDaoReady = $_isDaoReady");
   }
 
   Future<void> _refreshCustomers() async {
@@ -85,6 +80,9 @@ class _CustomerPageState extends State<CustomerPage> {
 
     await dao.updateCustomer(selectedCustomer!);
     await _refreshCustomers();
+    setState(() {
+      selectedCustomer=null;// Go back to list after update
+    });
   }
 
   Future<void> _confirmDelete(Customer customer) async {
@@ -108,9 +106,14 @@ class _CustomerPageState extends State<CustomerPage> {
     );
     if (confirm == true) {
       await dao.deleteCustomer(customer);
-      selectedCustomer = null;
-      _clearForm();
+
+      setState(() {
+        selectedCustomer = null;
+        _clearForm();
+      });
+
       await _refreshCustomers();
+
     }
   }
 
@@ -124,17 +127,29 @@ class _CustomerPageState extends State<CustomerPage> {
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ElevatedButton.icon(
               onPressed: () async {
-                await Navigator.push(
+                final Customer? newCustomer = await Navigator.push<Customer>(
                   context,
                   MaterialPageRoute(
                     builder: (_) => CustomerFormPage(
-                      dao: dao,
-                      onSaved: _refreshCustomers,
                       locale: widget.locale,
                       onLanguageChanged: widget.onLanguageChanged,
                     ),
                   ),
                 );
+
+                if (newCustomer != null) {
+                  try {
+                    await dao.insertCustomer(newCustomer);
+                    await _refreshCustomers();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(t.translate('customer_added_successfully') ?? 'Customer added successfully')),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(t.translate('add_failed') ?? 'Failed to add customer: $e')),
+                    );
+                  }
+                }
               },
               icon: const Icon(Icons.add),
               label: Text(t.translate('add') ?? 'Add'),
@@ -207,6 +222,14 @@ class _CustomerPageState extends State<CustomerPage> {
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: Text(t.translate('delete') ?? 'Delete'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    selectedCustomer = null; // Manual close button
+                  });
+                },
+                child: Text(t.translate('close') ?? 'Close'),
               ),
             ],
           )

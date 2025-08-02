@@ -2,7 +2,7 @@ import 'package:floor/floor.dart';
 
 @Entity(tableName: 'Customer')
 class Customer{
-  @primaryKey
+  @PrimaryKey(autoGenerate: true)
   final int? id;
   String firstName;
   String lastName;

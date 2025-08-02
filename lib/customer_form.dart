@@ -1,24 +1,17 @@
 import 'package:flutter/material.dart';
 import 'AppLocalizations.dart';
 import 'database/customer.dart';
-import 'database/customer_dao.dart';
+import 'repository.dart';
 
 class CustomerFormPage extends StatefulWidget {
-  final CustomerDao dao;
-  final Customer? customer;
-  final VoidCallback onSaved;
   final Locale locale;
   final Function(Locale) onLanguageChanged;
 
   const CustomerFormPage({
     super.key,
-    required this.dao,
-    this.customer,
-    required this.onSaved,
     required this.locale,
     required this.onLanguageChanged,
   });
-
   @override
   State<CustomerFormPage> createState() => _CustomerFormPageState();
 }
@@ -33,12 +26,48 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
   @override
   void initState() {
     super.initState();
-    if (widget.customer != null) {
-      firstNameController.text = widget.customer!.firstName;
-      lastNameController.text = widget.customer!.lastName;
-      addressController.text = widget.customer!.address;
-      birthDateController.text = widget.customer!.birthDate;
-    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final shouldLoad = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Load previous data?'),
+          content: const Text('Do you want to load the last saved customer data?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('No'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Yes'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldLoad == true) {
+        _loadDataIntoFields();
+      }
+    });
+
+    // Save form changes
+    firstNameController.addListener(() {
+      DataRepository.firstName = firstNameController.text;
+      DataRepository.saveData();
+    });
+    lastNameController.addListener(() {
+      DataRepository.lastName = lastNameController.text;
+      DataRepository.saveData();
+    });
+    addressController.addListener(() {
+      DataRepository.address = addressController.text;
+      DataRepository.saveData();
+    });
+    birthDateController.addListener(() {
+      DataRepository.birthDate = birthDateController.text;
+      DataRepository.saveData();
+    });
   }
 
   Future<void> _save() async {
@@ -49,34 +78,28 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
     final addr = addressController.text.trim();
     final bDate = birthDateController.text.trim();
 
-    if (widget.customer == null) {
-      // New
-      final newCustomer = Customer(null, fName, lName, addr, bDate);
-      await widget.dao.insertCustomer(newCustomer);
-    } else {
-      // Update
-      final updated = widget.customer!
-        ..firstName = fName
-        ..lastName = lName
-        ..address = addr
-        ..birthDate = bDate;
-      await widget.dao.updateCustomer(updated);
-    }
+    final newCustomer = Customer(null, fName, lName, addr, bDate);
 
-    widget.onSaved();
-    Navigator.pop(context);
+    Navigator.pop(context, newCustomer); // send customer back
+  }
+  void _loadDataIntoFields() async {
+    await DataRepository.loadData();
+    setState(() {
+      firstNameController.text = DataRepository.firstName;
+      lastNameController.text = DataRepository.lastName;
+      addressController.text = DataRepository.address;
+      birthDateController.text = DataRepository.birthDate;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    final isEditing = widget.customer != null;
+    // final isEditing = widget.customer != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing
-            ? t.translate('edit_customer') ?? 'Edit Customer'
-            : t.translate('add_customer') ?? 'Add Customer'),
+        title: Text(t.translate('add_customer') ?? 'Add Customer'),
         actions: [
           DropdownButtonHideUnderline(
             child: DropdownButton<Locale>(
@@ -133,7 +156,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _save,
-                child: Text(t.translate(isEditing ? 'update' : 'add') ?? (isEditing ? 'Update' : 'Add')),
+                child: Text(t.translate('add') ?? 'Add'),
               )
             ],
           ),
