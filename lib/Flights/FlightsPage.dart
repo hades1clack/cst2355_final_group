@@ -96,25 +96,25 @@ class _FlightsPageState extends State<FlightsPage> {
   }
 
   ///controls over when to refresh the list — only if a flight was truly added.
-  Future<void> _navigateToAddFlight() async {
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => FlightAddingPage(flightDAO: widget.flightDAO),
-      ),
-    );
+  // Future<void> _navigateToAddFlight() async {
+  //   final result = await Navigator.push<bool>(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (_) => FlightAddingPage(flightDAO: widget.flightDAO),
+  //     ),
+  //   );
 
-    if (result == true) {
-      await loadFlights();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.translate("flightAdded")!),
-          duration: Duration(seconds: 3),
-          behavior: SnackBarBehavior.fixed,
-        ),
-      );
-    }
-  }
+  //   if (result == true) {
+  //     await loadFlights();
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(AppLocalizations.of(context)!.translate("flightAdded")!),
+  //         duration: Duration(seconds: 3),
+  //         behavior: SnackBarBehavior.fixed,
+  //       ),
+  //     );
+  //   }
+  // }
 
   /// Deletes the selected flight from database
   Future<void> _deleteFlight(Flights flight) async {
