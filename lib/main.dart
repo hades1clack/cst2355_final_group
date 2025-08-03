@@ -15,10 +15,10 @@ void main() {
 
 class MyApp extends StatefulWidget {
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<MyApp> createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> {
   Locale _locale = Locale('en'); // Default language
 
   void _changeLanguage(Locale locale) {
