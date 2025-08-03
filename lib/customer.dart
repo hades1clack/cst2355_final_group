@@ -230,6 +230,7 @@ class _CustomerPageState extends State<CustomerPage> {
             children: [
               ElevatedButton(
                 onPressed: _updateCustomer,
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
                 child: Text(t.translate('update') ?? 'Update'),
               ),
               const SizedBox(width: 20),
@@ -239,7 +240,7 @@ class _CustomerPageState extends State<CustomerPage> {
                     _confirmDelete(selectedCustomer!);
                   }
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
                 child: Text(t.translate('delete') ?? 'Delete'),
               ),
               ElevatedButton(
@@ -248,6 +249,7 @@ class _CustomerPageState extends State<CustomerPage> {
                     selectedCustomer = null; // Manual close button
                   });
                 },
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
                 child: Text(t.translate('close') ?? 'Close'),
               ),
             ],

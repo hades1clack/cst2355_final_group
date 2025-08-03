@@ -22,31 +22,33 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController birthDateController = TextEditingController();
-
+  late Locale _currentDropdownLocale;
   @override
   void initState() {
     super.initState();
-
+    _currentDropdownLocale = _normalizeLocale(widget.locale);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final shouldLoad = await showDialog<bool>(
         context: context,
         builder:
-            (context) => AlertDialog(
-              title: const Text('Load previous data?'),
-              content: const Text(
-                'Do you want to load the last saved customer data?',
+            (context) {
+          final t = AppLocalizations.of(context)!;
+
+          return AlertDialog(
+            title: Text(t.translate('load_data_title') ?? 'Load previous data?'),
+            content: Text(t.translate('load_data_prompt') ?? 'Do you want to load the last saved customer data?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(t.translate('no') ?? 'No'),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('No'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Yes'),
-                ),
-              ],
-            ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(t.translate('yes') ?? 'Yes'),
+              ),
+            ],
+          );
+        },
       );
 
       if (shouldLoad == true) {
@@ -71,6 +73,26 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
       DataRepository.birthDate = birthDateController.text;
       DataRepository.saveData();
     });
+  }
+
+  @override
+  void didUpdateWidget(CustomerFormPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.locale != widget.locale) {
+      setState(() {
+        _currentDropdownLocale = _normalizeLocale(widget.locale);
+      });
+    }
+  }
+
+  Locale _normalizeLocale(Locale locale) {
+    switch (locale.languageCode) {
+      case 'fr':
+        return const Locale('fr');
+      case 'en':
+      default:
+        return const Locale('en');
+    }
   }
 
   Future<void> _save() async {
@@ -106,19 +128,33 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
         title: Text(t.translate('add_customer') ?? 'Add Customer'),
         actions: [
           DropdownButtonHideUnderline(
-            child: DropdownButton<Locale>(
-              value: widget.locale,
-              icon: Icon(Icons.language, color: Colors.white),
-              dropdownColor: Colors.blue,
-              onChanged: (Locale? locale) {
-                if (locale != null) {
-                  widget.onLanguageChanged(locale);
-                }
-              },
-              items: const [
-                DropdownMenuItem(value: Locale('en'), child: Text('English')),
-                DropdownMenuItem(value: Locale('fr'), child: Text('Français')),
-              ],
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                canvasColor: Colors.blue, // Dropdown menu background
+                highlightColor: Colors.blue[800], // Selected item highlight
+                splashColor: Colors.blue[700], // Ripple effect
+                textTheme: Theme.of(context).textTheme.apply(
+                  bodyColor: Colors.white, // Text color
+                  displayColor: Colors.white,
+                ),
+              ),
+              child: DropdownButton<Locale>(
+                value: _currentDropdownLocale,
+                icon: const Icon(Icons.language, color: Colors.white),
+                dropdownColor: Colors.blue,
+                onChanged: (Locale? locale) {
+                  if (locale != null) {
+                    setState(() {
+                      _currentDropdownLocale = locale; // update local selection
+                    });
+                    widget.onLanguageChanged(locale); // notify parent to change language
+                  }
+                },
+                items: const [
+                  DropdownMenuItem(value: Locale('en'), child: Text('English')),
+                  DropdownMenuItem(value: Locale('fr'), child: Text('Français')),
+                ],
+              ),
             ),
           ),
         ],
@@ -140,7 +176,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                   TextFormField(
                     controller: firstNameController,
                     decoration: InputDecoration(
-                      labelText: t.translate('first_name') ?? 'First Name',
+                      labelText: t.translate('First_Name') ?? 'First Name',
                     ),
                     validator:
                         (value) =>
@@ -151,7 +187,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                   TextFormField(
                     controller: lastNameController,
                     decoration: InputDecoration(
-                      labelText: t.translate('last_name') ?? 'Last Name',
+                      labelText: t.translate('Last_Name') ?? 'Last Name',
                     ),
                     validator:
                         (value) =>
@@ -162,7 +198,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                   TextFormField(
                     controller: addressController,
                     decoration: InputDecoration(
-                      labelText: t.translate('address') ?? 'Address',
+                      labelText: t.translate('Address') ?? 'Address',
                     ),
                     validator:
                         (value) =>
@@ -173,7 +209,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                   TextFormField(
                     controller: birthDateController,
                     decoration: InputDecoration(
-                      labelText: t.translate('birth_date') ?? 'Birth Date',
+                      labelText: t.translate('Birth_Date') ?? 'Birth Date',
                     ),
                     validator:
                         (value) =>
@@ -184,7 +220,8 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _save,
-                    child: Text(t.translate('add') ?? 'Add'),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
+                    child: Text(t.translate('Submit') ?? 'Submit'),
                   ),
                 ],
               ),
