@@ -27,24 +27,23 @@ class _ReservationPageState extends State<ReservationPage> {
   void initState() {
     super.initState();
     initDatabase();
-    restoreFields();
   }
 
   Future<void> initDatabase() async {
-    db = await $FloorReservationDatabase
-        .databaseBuilder('reservations.db')
-        .build();
+    db = await $FloorReservationDatabase.databaseBuilder('reservations.db').build();
     dao = db.reservationDao;
     _refreshReservations();
   }
 
-  Future<void> restoreFields() async {
+  Future<void> _copyPreviousCustomerFields() async {
     try {
       _customerIdController.text = await _prefs.getString('customerId') ?? '';
       _flightIdController.text = await _prefs.getString('flightId') ?? '';
       _dateController.text = await _prefs.getString('flightDate') ?? '';
       _nameController.text = await _prefs.getString('reservationName') ?? '';
-    } catch (_) {}
+    } catch (_) {
+      // Handle decryption error if any
+    }
   }
 
   Future<void> _saveEncryptedPrefs() async {
@@ -67,24 +66,29 @@ class _ReservationPageState extends State<ReservationPage> {
         _dateController.text.isEmpty ||
         _nameController.text.isEmpty) {
       showDialog(
-          context: context,
-          builder: (_) => const AlertDialog(
-              title: Text("Missing fields"),
-              content: Text("Please fill all fields")));
+        context: context,
+        builder: (_) => const AlertDialog(
+          title: Text("Missing fields"),
+          content: Text("Please fill all fields"),
+        ),
+      );
       return;
     }
 
     final reservation = Reservation(
-        customerId: _customerIdController.text,
-        flightId: _flightIdController.text,
-        flightDate: _dateController.text,
-        reservationName: _nameController.text);
+      customerId: _customerIdController.text,
+      flightId: _flightIdController.text,
+      flightDate: _dateController.text,
+      reservationName: _nameController.text,
+    );
 
     await dao.insertReservation(reservation);
-    _saveEncryptedPrefs();
+    await _saveEncryptedPrefs();
     _refreshReservations();
+
     ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Reservation added successfully")));
+      const SnackBar(content: Text("Reservation added successfully")),
+    );
   }
 
   void _deleteReservation(Reservation reservation) async {
@@ -98,7 +102,35 @@ class _ReservationPageState extends State<ReservationPage> {
       builder: (_) => const AlertDialog(
         title: Text("Instructions"),
         content: Text(
-            "Enter customer ID, flight ID, flight date, and a reservation name.\nTap 'Add' to save."),
+          "Enter a Customer ID, Flight ID, Flight Date, and Reservation Name.\nTap 'Add Reservation' to save it.\n\nTap 'Copy Previous Customer' to reuse the last added customer info.",
+        ),
+      ),
+    );
+  }
+
+  void _showReservationDetails(Reservation r) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(r.reservationName),
+        content: Text(
+            "Customer ID: ${r.customerId}\n"
+                "Flight ID: ${r.flightId}\n"
+                "Flight Date: ${r.flightDate}"
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteReservation(r);
+            },
+            child: const Text("Delete"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Close"),
+          ),
+        ],
       ),
     );
   }
@@ -109,54 +141,61 @@ class _ReservationPageState extends State<ReservationPage> {
       appBar: AppBar(
         title: const Text("Reservation Page"),
         actions: [
-          IconButton(
-              icon: const Icon(Icons.info_outline),
-              onPressed: _showInstructions),
+          IconButton(icon: const Icon(Icons.info_outline), onPressed: _showInstructions),
         ],
       ),
-      body: Column(
-        children: [
-          TextField(controller: _customerIdController, decoration: const InputDecoration(labelText: "Customer ID")),
-          TextField(controller: _flightIdController, decoration: const InputDecoration(labelText: "Flight ID")),
-          TextField(controller: _dateController, decoration: const InputDecoration(labelText: "Flight Date")),
-          TextField(controller: _nameController, decoration: const InputDecoration(labelText: "Reservation Name")),
-          ElevatedButton(onPressed: _addReservation, child: const Text("Add Reservation")),
-          const SizedBox(height: 10),
-          const Divider(),
-          const Text("All Reservations", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _reservations.length,
-              itemBuilder: (context, index) {
-                final r = _reservations[index];
-                return ListTile(
-                  title: Text(r.reservationName),
-                  subtitle: Text("${r.customerId} -> ${r.flightId} on ${r.flightDate}"),
-                  onTap: () => showDialog(
-                    context: context,
-                    builder: (_) => AlertDialog(
-                      title: Text(r.reservationName),
-                      content: Text("Customer ID: ${r.customerId}\nFlight ID: ${r.flightId}\nDate: ${r.flightDate}"),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _deleteReservation(r);
-                          },
-                          child: const Text("Delete"),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text("Close"),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _customerIdController,
+              decoration: const InputDecoration(labelText: "Customer ID"),
             ),
-          ),
-        ],
+            TextField(
+              controller: _flightIdController,
+              decoration: const InputDecoration(labelText: "Flight ID"),
+            ),
+            TextField(
+              controller: _dateController,
+              decoration: const InputDecoration(labelText: "Flight Date (YYYY-MM-DD)"),
+            ),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: "Reservation Name"),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _addReservation,
+                  child: const Text("Add Reservation"),
+                ),
+                ElevatedButton(
+                  onPressed: _copyPreviousCustomerFields,
+                  child: const Text("Copy Previous Customer"),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+            const Divider(),
+            const Text("All Reservations", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _reservations.length,
+                itemBuilder: (context, index) {
+                  final r = _reservations[index];
+                  return ListTile(
+                    title: Text(r.reservationName),
+                    subtitle: Text("Customer ID: ${r.customerId}, Flight ID: ${r.flightId}"),
+                    onTap: () => _showReservationDetails(r),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
