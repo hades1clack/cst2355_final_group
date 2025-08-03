@@ -4,7 +4,7 @@ import 'database/reservation_database.dart';
 import 'database/reservation_dao.dart';
 import 'add_reservation_page.dart';
 import 'localization/AppLocalizations.dart';
-import 'dev_main.dart';
+import 'main.dart';
 
 class ReservationPage extends StatefulWidget {
   const ReservationPage({super.key});
