@@ -15,13 +15,13 @@ void main() {
 
 class MyApp extends StatefulWidget {
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<MyApp> createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
-  Locale _locale = Locale('en'); // Default language
+class MyAppState extends State<MyApp> {
+  Locale _locale = const Locale('en'); // Default language
 
-  void _changeLanguage(Locale locale) {
+  void changeLanguage(Locale locale) {
     setState(() {
       _locale = locale;
     });
@@ -52,7 +52,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home: HomePage(
           locale:_locale,
-          onLanguageChanged: _changeLanguage),
+          onLanguageChanged: changeLanguage),
     );
   }
 }
