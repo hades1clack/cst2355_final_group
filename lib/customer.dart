@@ -24,6 +24,7 @@ class _CustomerPageState extends State<CustomerPage> {
   late CustomerDao dao;
   List<Customer> customers = [];
   Customer? selectedCustomer;
+  late Locale _currentDropdownLocale;
   // var _isDaoReady;
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
@@ -34,8 +35,26 @@ class _CustomerPageState extends State<CustomerPage> {
   void initState() {
     super.initState();
     _initDatabase();
+    _currentDropdownLocale = normalizeLocale(widget.locale);
   }
-
+  @override
+  void didUpdateWidget(CustomerPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.locale != widget.locale) {
+      _currentDropdownLocale = normalizeLocale(widget.locale);
+      setState(() {}); // Trigger rebuild to apply new translations
+    }
+  }
+  Locale normalizeLocale(Locale locale) {
+    // Ensures you compare only language codes
+    switch (locale.languageCode) {
+      case 'fr':
+        return const Locale('fr');
+      case 'en':
+      default:
+        return const Locale('en');
+    }
+  }
   // Future<void> _initDatabase() async {
   //   database = await $FloorAppDatabase.databaseBuilder('customer.db').build();
   //   dao = database.customerDao;
@@ -255,33 +274,53 @@ class _CustomerPageState extends State<CustomerPage> {
   }
 
   Widget _buildLanguageDropdown() {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<Locale>(
-        value: widget.locale,
-        icon: const Icon(Icons.language, color: Colors.white),
-        dropdownColor: Colors.blue,
-        onChanged: (Locale? locale) {
-          if (locale != null) widget.onLanguageChanged(locale);
-        },
-        items: const [
-          DropdownMenuItem(value: Locale('en'), child: Text('English')),
-          DropdownMenuItem(value: Locale('fr'), child: Text('Français')),
-        ],
+    return Container(
+      color: Colors.blue, // Match your AppBar background
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonHideUnderline(
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            canvasColor: Colors.blue, // Dropdown menu background
+            highlightColor: Colors.blue[800], // Selected item highlight
+            splashColor: Colors.blue[700], // Ripple effect
+            textTheme: Theme.of(context).textTheme.apply(
+              bodyColor: Colors.white, // Text color
+              displayColor: Colors.white,
+            ),
+          ),
+          child: DropdownButton<Locale>(
+            value: _currentDropdownLocale,
+            icon: const Icon(Icons.language, color: Colors.white),
+            dropdownColor: Colors.blue,
+            onChanged: (Locale? locale) {
+              if (locale != null) {
+                setState(() {
+                  _currentDropdownLocale = locale; // update local selection
+                });
+                widget.onLanguageChanged(locale); // notify parent to change language
+              }
+            },
+            items: const [
+              DropdownMenuItem(value: Locale('en'), child: Text('English')),
+              DropdownMenuItem(value: Locale('fr'), child: Text('Français')),
+            ],
+          ),
+        ),
       ),
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
+    // print('widget.locale: ${widget.locale}');
+    // print('normalized: ${normalizeLocale(widget.locale)}');
     return Scaffold(
       appBar: AppBar(
         title: Text(t.translate('customer_list') ?? 'Customer List'),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: _buildLanguageDropdown(),
-          ),
+          _buildLanguageDropdown()
         ],
       ),
       body: Stack(
