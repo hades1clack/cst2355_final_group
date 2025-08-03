@@ -30,20 +30,23 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final shouldLoad = await showDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Load previous data?'),
-          content: const Text('Do you want to load the last saved customer data?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('No'),
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Load previous data?'),
+              content: const Text(
+                'Do you want to load the last saved customer data?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('No'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Yes'),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Yes'),
-            ),
-          ],
-        ),
       );
 
       if (shouldLoad == true) {
@@ -82,6 +85,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
 
     Navigator.pop(context, newCustomer); // send customer back
   }
+
   void _loadDataIntoFields() async {
     await DataRepository.loadData();
     setState(() {
@@ -116,51 +120,77 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                 DropdownMenuItem(value: Locale('fr'), child: Text('Français')),
               ],
             ),
-          )
+          ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: firstNameController,
-                decoration: InputDecoration(labelText: t.translate('first_name') ?? 'First Name'),
-                validator: (value) => value == null || value.isEmpty
-                    ? t.translate('field_required') ?? 'Required'
-                    : null,
-              ),
-              TextFormField(
-                controller: lastNameController,
-                decoration: InputDecoration(labelText: t.translate('last_name') ?? 'Last Name'),
-                validator: (value) => value == null || value.isEmpty
-                    ? t.translate('field_required') ?? 'Required'
-                    : null,
-              ),
-              TextFormField(
-                controller: addressController,
-                decoration: InputDecoration(labelText: t.translate('address') ?? 'Address'),
-                validator: (value) => value == null || value.isEmpty
-                    ? t.translate('field_required') ?? 'Required'
-                    : null,
-              ),
-              TextFormField(
-                controller: birthDateController,
-                decoration: InputDecoration(labelText: t.translate('birth_date') ?? 'Birth Date'),
-                validator: (value) => value == null || value.isEmpty
-                    ? t.translate('field_required') ?? 'Required'
-                    : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _save,
-                child: Text(t.translate('add') ?? 'Add'),
-              )
-            ],
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset('images/customer_bg.jpg', fit: BoxFit.cover),
           ),
-        ),
+          // Container(
+          //   color: Colors.black.withOpacity(0.4), // Optional dark overlay
+          // ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  TextFormField(
+                    controller: firstNameController,
+                    decoration: InputDecoration(
+                      labelText: t.translate('first_name') ?? 'First Name',
+                    ),
+                    validator:
+                        (value) =>
+                            value == null || value.isEmpty
+                                ? t.translate('field_required') ?? 'Required'
+                                : null,
+                  ),
+                  TextFormField(
+                    controller: lastNameController,
+                    decoration: InputDecoration(
+                      labelText: t.translate('last_name') ?? 'Last Name',
+                    ),
+                    validator:
+                        (value) =>
+                            value == null || value.isEmpty
+                                ? t.translate('field_required') ?? 'Required'
+                                : null,
+                  ),
+                  TextFormField(
+                    controller: addressController,
+                    decoration: InputDecoration(
+                      labelText: t.translate('address') ?? 'Address',
+                    ),
+                    validator:
+                        (value) =>
+                            value == null || value.isEmpty
+                                ? t.translate('field_required') ?? 'Required'
+                                : null,
+                  ),
+                  TextFormField(
+                    controller: birthDateController,
+                    decoration: InputDecoration(
+                      labelText: t.translate('birth_date') ?? 'Birth Date',
+                    ),
+                    validator:
+                        (value) =>
+                            value == null || value.isEmpty
+                                ? t.translate('field_required') ?? 'Required'
+                                : null,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _save,
+                    child: Text(t.translate('add') ?? 'Add'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -24,7 +24,7 @@ class _CustomerPageState extends State<CustomerPage> {
   late CustomerDao dao;
   List<Customer> customers = [];
   Customer? selectedCustomer;
-  var _isDaoReady;
+  // var _isDaoReady;
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final addressController = TextEditingController();
@@ -284,7 +284,21 @@ class _CustomerPageState extends State<CustomerPage> {
           ),
         ],
       ),
-      body: _responsiveLayout(t),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'images/customer_bg.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Container(
+          //   color: Colors.black.withOpacity(0.4), // Optional overlay for readability
+          // ),
+          _responsiveLayout(t),
+        ],
+      ),
+
     );
   }
 
