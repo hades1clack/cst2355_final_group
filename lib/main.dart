@@ -21,11 +21,12 @@ class MyApp extends StatefulWidget {
   }
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<MyApp> createState() => MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
   Locale _locale = const Locale("en");
+
 
   void changeLanguage(Locale newLocale) {
     setState(() {
