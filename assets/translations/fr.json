@@ -1,11 +1,15 @@
 {
-  "reservation": "Réservation",
-  "enter_reservation": "Entrez la réservation",
-  "add": "Ajouter",
-  "empty_warning": "La réservation ne peut pas être vide !",
-  "added_success": "Réservation ajoutée avec succès !",
-  "reservation_details": "Détails de la réservation",
+  "title": "Réservations",
+  "add_reservation": "Ajouter une réservation",
+  "reservation_name": "Nom de la réservation",
+  "customer_id": "ID client",
+  "flight_id": "ID de vol",
+  "flight_date": "Date du vol",
+  "submit": "Soumettre",
+  "copy_previous": "Copier le client précédent",
+  "delete": "Supprimer",
   "close": "Fermer",
-  "help_title": "Comment utiliser",
-  "help_reservation": "Entrez une réservation et appuyez sur Ajouter. Appuyez sur une réservation pour voir les détails."
+  "missing_fields": "Champs manquants",
+  "please_fill": "Veuillez remplir tous les champs",
+  "reservation_added": "Réservation ajoutée avec succès"
 }

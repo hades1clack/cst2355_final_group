@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import 'database/reservation.dart';
 import 'database/reservation_database.dart';
+import 'localization/AppLocalizations.dart'; // Import localization
 
 class AddReservationPage extends StatefulWidget {
   final ReservationDatabase database;
@@ -45,15 +46,16 @@ class _AddReservationPageState extends State<AddReservationPage> {
   }
 
   void _addReservation() async {
+    final loc = AppLocalizations.of(context)!;
     if (_customerIdController.text.isEmpty ||
         _flightIdController.text.isEmpty ||
         _dateController.text.isEmpty ||
         _nameController.text.isEmpty) {
       showDialog(
         context: context,
-        builder: (_) => const AlertDialog(
-          title: Text("Missing fields"),
-          content: Text("Please fill all fields"),
+        builder: (_) => AlertDialog(
+          title: Text(loc.translate("missing_fields") ?? "Missing fields"),
+          content: Text(loc.translate("please_fill") ?? "Please fill all fields"),
         ),
       );
       return;
@@ -70,7 +72,7 @@ class _AddReservationPageState extends State<AddReservationPage> {
     await _saveEncryptedPrefs();
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Reservation added successfully")),
+      SnackBar(content: Text(loc.translate("reservation_added") ?? "Reservation added successfully")),
     );
 
     Navigator.pop(context, true); // return true to indicate added
@@ -78,27 +80,28 @@ class _AddReservationPageState extends State<AddReservationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Reservation")),
+      appBar: AppBar(title: Text(loc.translate("add_reservation") ?? "Add Reservation")),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: ListView(
           children: [
             TextField(
               controller: _customerIdController,
-              decoration: const InputDecoration(labelText: "Customer ID"),
+              decoration: InputDecoration(labelText: loc.translate("customer_id") ?? "Customer ID"),
             ),
             TextField(
               controller: _flightIdController,
-              decoration: const InputDecoration(labelText: "Flight ID"),
+              decoration: InputDecoration(labelText: loc.translate("flight_id") ?? "Flight ID"),
             ),
             TextField(
               controller: _dateController,
-              decoration: const InputDecoration(labelText: "Flight Date (YYYY-MM-DD)"),
+              decoration: InputDecoration(labelText: loc.translate("flight_date") ?? "Flight Date (YYYY-MM-DD)"),
             ),
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: "Reservation Name"),
+              decoration: InputDecoration(labelText: loc.translate("reservation_name") ?? "Reservation Name"),
             ),
             const SizedBox(height: 20),
             Row(
@@ -106,11 +109,11 @@ class _AddReservationPageState extends State<AddReservationPage> {
               children: [
                 ElevatedButton(
                   onPressed: _addReservation,
-                  child: const Text("Add"),
+                  child: Text(loc.translate("submit") ?? "Add"),
                 ),
                 ElevatedButton(
                   onPressed: _copyPreviousCustomerFields,
-                  child: const Text("Copy Previous Customer"),
+                  child: Text(loc.translate("copy_previous") ?? "Copy Previous Customer"),
                 ),
               ],
             ),

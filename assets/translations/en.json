@@ -1,11 +1,15 @@
 {
-  "reservation": "Reservation",
-  "enter_reservation": "Enter Reservation",
-  "add": "Add",
-  "empty_warning": "Reservation cannot be empty!",
-  "added_success": "Reservation added successfully!",
-  "reservation_details": "Reservation Details",
+  "title": "Reservations",
+  "add_reservation": "Add Reservation",
+  "reservation_name": "Reservation Name",
+  "customer_id": "Customer ID",
+  "flight_id": "Flight ID",
+  "flight_date": "Flight Date",
+  "submit": "Submit",
+  "copy_previous": "Copy Previous Customer",
+  "delete": "Delete",
   "close": "Close",
-  "help_title": "How to Use",
-  "help_reservation": "Enter a reservation and press Add. Tap on a reservation to view its details."
+  "missing_fields": "Missing fields",
+  "please_fill": "Please fill all fields",
+  "reservation_added": "Reservation added successfully"
 }

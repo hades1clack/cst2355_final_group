@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'database/reservation.dart';
 import 'database/reservation_database.dart';
 import 'database/reservation_dao.dart';
-import 'add_reservation_page.dart'; // We'll create this next
+import 'add_reservation_page.dart';
+import 'localization/AppLocalizations.dart';
+import 'dev_main.dart';
 
 class ReservationPage extends StatefulWidget {
   const ReservationPage({super.key});
@@ -37,14 +39,16 @@ class _ReservationPageState extends State<ReservationPage> {
   }
 
   void _showReservationDetails(Reservation r) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: Text(r.reservationName),
         content: Text(
-            "Customer ID: ${r.customerId}\n"
-                "Flight ID: ${r.flightId}\n"
-                "Flight Date: ${r.flightDate}"),
+            "${loc.translate('customer_id')}: ${r.customerId}\n"
+                "${loc.translate('flight_id')}: ${r.flightId}\n"
+                "${loc.translate('flight_date')}: ${r.flightDate}"
+        ),
         actions: [
           TextButton(
             onPressed: () async {
@@ -52,11 +56,11 @@ class _ReservationPageState extends State<ReservationPage> {
               Navigator.pop(context);
               _refreshReservations();
             },
-            child: const Text("Delete"),
+            child: Text(loc.translate('delete')!),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
+            child: Text(loc.translate('close')!),
           ),
         ],
       ),
@@ -77,18 +81,30 @@ class _ReservationPageState extends State<ReservationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Reservations"),
+        title: Text(loc.translate("title")!),
+        actions: [
+          TextButton(
+            onPressed: () => MyApp.setLocale(context, const Locale("en", "US")),
+            child: const Text("EN", style: TextStyle(color: Colors.black)),
+          ),
+          TextButton(
+            onPressed: () => MyApp.setLocale(context, const Locale("fr", "FR")),
+            child: const Text("FR", style: TextStyle(color: Colors.black)),
+          ),
+        ],
       ),
       body: Column(
         children: [
           ElevatedButton(
             onPressed: _navigateToAddReservation,
-            child: const Text("Add Reservation"),
+            child: Text(loc.translate("add_reservation")!),
           ),
           const Divider(),
-          const Text("All Reservations", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(loc.translate("title")!, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           Expanded(
             child: ListView.builder(
               itemCount: _reservations.length,
@@ -96,7 +112,7 @@ class _ReservationPageState extends State<ReservationPage> {
                 final r = _reservations[index];
                 return ListTile(
                   title: Text(r.reservationName),
-                  subtitle: Text("Customer ID: ${r.customerId}, Flight ID: ${r.flightId}"),
+                  subtitle: Text("${loc.translate('customer_id')}: ${r.customerId}, ${loc.translate('flight_id')}: ${r.flightId}"),
                   onTap: () => _showReservationDetails(r),
                 );
               },
