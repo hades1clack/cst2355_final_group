@@ -1,6 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'AppLocalizations.dart'; // Your localization class
+import 'package:cst2355_final_group/localization/AppLocalizations.dart'; // Your localization class
 
 // These will be uncommented once the other files are added
 // import 'customer.dart';
@@ -14,6 +15,11 @@ void main() {
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  static void setLocale(BuildContext context, Locale newLocale) {
+    final MyAppState? state = context.findAncestorStateOfType<MyAppState>();
+    state?.changeLanguage(newLocale);
+  }
 
   @override
   State<MyApp> createState() => MyAppState();
@@ -63,10 +69,10 @@ class HomePage extends StatelessWidget {
   final Function(Locale) onLanguageChanged;
 
   const HomePage({
-    super.key,
+    Key? key,
     required this.locale,
     required this.onLanguageChanged,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

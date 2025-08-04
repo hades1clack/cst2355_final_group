@@ -1,4 +1,4 @@
-import 'package:cst2355_final_group/AppLocalizations.dart';
+import 'package:cst2355_final_group/localization/AppLocalizations.dart';
 import 'package:cst2355_final_group/Database/FlightsDatabase.dart';
 import 'package:flutter/material.dart';
 import 'package:cst2355_final_group/Database/FlightDAO.dart';

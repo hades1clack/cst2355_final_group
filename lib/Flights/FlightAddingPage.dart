@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cst2355_final_group/Database/FlightDAO.dart';
 import 'package:cst2355_final_group/Database/Flights.dart';
-import 'package:cst2355_final_group/AppLocalizations.dart';
+import 'package:cst2355_final_group/localization/AppLocalizations.dart';
 import 'package:cst2355_final_group/main.dart';
 
 /// A page that allows the user to add a new flight record to the local database.
