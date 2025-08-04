@@ -227,11 +227,11 @@ class _FlightsPageState extends State<FlightsPage> {
               child: Image.asset(
                 'assets/images/flights_schedule.jpg',
                 fit: BoxFit.cover,
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withAlpha(128),
                 colorBlendMode: BlendMode.lighten,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    color: Colors.white.withOpacity(0.4),);
+                    color: Colors.white.withAlpha(128),);
                 },),
           ),),
           Positioned.fill(
@@ -254,7 +254,7 @@ class _FlightsPageState extends State<FlightsPage> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withAlpha(204),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
