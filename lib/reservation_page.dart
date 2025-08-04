@@ -48,30 +48,31 @@ class _ReservationPageState extends State<ReservationPage> {
     final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(r.reservationName),
-        content: Text(
-          "${loc.translate('customer_id')}: ${r.customerId}\n"
-              "${loc.translate('flight_id')}: ${r.flightId}\n"
-              "${loc.translate('flight_date')}: ${r.flightDate}",
-        ),
-        actions: [
-          // Delete reservation
-          TextButton(
-            onPressed: () async {
-              await dao.deleteReservation(r);
-              Navigator.pop(context); // Close dialog
-              _refreshReservations(); // Refresh list
-            },
-            child: Text(loc.translate('delete')!),
+      builder: (_) =>
+          AlertDialog(
+            title: Text(r.reservationName),
+            content: Text(
+              "${loc.translate('customer_id')}: ${r.customerId}\n"
+                  "${loc.translate('flight_id')}: ${r.flightId}\n"
+                  "${loc.translate('flight_date')}: ${r.flightDate}",
+            ),
+            actions: [
+              // Delete reservation
+              TextButton(
+                onPressed: () async {
+                  await dao.deleteReservation(r);
+                  Navigator.pop(context); // Close dialog
+                  _refreshReservations(); // Refresh list
+                },
+                child: Text(loc.translate('delete')!),
+              ),
+              // Close dialog
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(loc.translate('close')!),
+              ),
+            ],
           ),
-          // Close dialog
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(loc.translate('close')!),
-          ),
-        ],
-      ),
     );
   }
 
@@ -111,10 +112,13 @@ class _ReservationPageState extends State<ReservationPage> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('images/sky.jpg'), // 🔹 Make sure this file exists in assets
-            fit: BoxFit.cover, // 🔹 Cover full background
+            image: AssetImage('images/sky.jpg'),
+            // 🔹 Make sure this file exists in assets
+            fit: BoxFit.cover,
+            // 🔹 Cover full background
             colorFilter: ColorFilter.mode(
-              Colors.white.withOpacity(0.8), // 🔹 Make it slightly faded for readability
+              Colors.white.withOpacity(0.8),
+              // 🔹 Make it slightly faded for readability
               BlendMode.dstATop,
             ),
           ),
@@ -151,3 +155,4 @@ class _ReservationPageState extends State<ReservationPage> {
       ),
     );
   }
+}
