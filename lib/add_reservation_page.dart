@@ -4,6 +4,7 @@ import 'database/reservation.dart';
 import 'database/reservation_database.dart';
 import 'localization/AppLocalizations.dart'; // Import localization
 
+/// Page for adding a new reservation with fields and encrypted shared preferences.
 class AddReservationPage extends StatefulWidget {
   final ReservationDatabase database;
 
@@ -14,30 +15,36 @@ class AddReservationPage extends StatefulWidget {
 }
 
 class _AddReservationPageState extends State<AddReservationPage> {
-  late final dao;
+  late final dao; // DAO for database operations
 
+  // Text controllers for input fields
   final TextEditingController _customerIdController = TextEditingController();
   final TextEditingController _flightIdController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
 
+  // Encrypted Shared Preferences instance to store last entered values securely
   final EncryptedSharedPreferences _prefs = EncryptedSharedPreferences();
 
   @override
   void initState() {
     super.initState();
-    dao = widget.database.reservationDao;
+    dao = widget.database.reservationDao; // Initialize DAO from passed database
   }
 
+  /// Copies previously saved customer info from encrypted preferences into text fields
   Future<void> _copyPreviousCustomerFields() async {
     try {
       _customerIdController.text = await _prefs.getString('customerId') ?? '';
       _flightIdController.text = await _prefs.getString('flightId') ?? '';
       _dateController.text = await _prefs.getString('flightDate') ?? '';
       _nameController.text = await _prefs.getString('reservationName') ?? '';
-    } catch (_) {}
+    } catch (_) {
+      // If an error occurs (e.g. no stored values), do nothing
+    }
   }
 
+  /// Saves current inputs securely in encrypted shared preferences
   Future<void> _saveEncryptedPrefs() async {
     await _prefs.setString('customerId', _customerIdController.text);
     await _prefs.setString('flightId', _flightIdController.text);
@@ -45,8 +52,11 @@ class _AddReservationPageState extends State<AddReservationPage> {
     await _prefs.setString('reservationName', _nameController.text);
   }
 
+  /// Validates input, inserts new reservation, saves prefs, shows confirmation, and closes page
   void _addReservation() async {
     final loc = AppLocalizations.of(context)!;
+
+    // Check for empty fields and show alert if any are missing
     if (_customerIdController.text.isEmpty ||
         _flightIdController.text.isEmpty ||
         _dateController.text.isEmpty ||
@@ -61,6 +71,7 @@ class _AddReservationPageState extends State<AddReservationPage> {
       return;
     }
 
+    // Create a new Reservation object with input data
     final reservation = Reservation(
       customerId: _customerIdController.text,
       flightId: _flightIdController.text,
@@ -68,56 +79,80 @@ class _AddReservationPageState extends State<AddReservationPage> {
       reservationName: _nameController.text,
     );
 
-    await dao.insertReservation(reservation);
-    await _saveEncryptedPrefs();
+    await dao.insertReservation(reservation); // Insert into database
+    await _saveEncryptedPrefs(); // Save inputs to encrypted prefs
 
+    // Show confirmation message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(loc.translate("reservation_added") ?? "Reservation added successfully")),
     );
 
-    Navigator.pop(context, true); // return true to indicate added
+    Navigator.pop(context, true); // Close page and notify success
   }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(title: Text(loc.translate("add_reservation") ?? "Add Reservation")),
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: ListView(
-          children: [
-            TextField(
-              controller: _customerIdController,
-              decoration: InputDecoration(labelText: loc.translate("customer_id") ?? "Customer ID"),
+
+      // Add a background image using a Container with BoxDecoration
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('images/sky.jpg'),  // <-- Your sky image in assets folder
+            fit: BoxFit.cover,                     // Cover the entire background
+            colorFilter: ColorFilter.mode(
+              Colors.white.withOpacity(0.8),      // Slightly faded white overlay for readability
+              BlendMode.dstATop,
             ),
-            TextField(
-              controller: _flightIdController,
-              decoration: InputDecoration(labelText: loc.translate("flight_id") ?? "Flight ID"),
-            ),
-            TextField(
-              controller: _dateController,
-              decoration: InputDecoration(labelText: loc.translate("flight_date") ?? "Flight Date (YYYY-MM-DD)"),
-            ),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: loc.translate("reservation_name") ?? "Reservation Name"),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: _addReservation,
-                  child: Text(loc.translate("submit") ?? "Add"),
-                ),
-                ElevatedButton(
-                  onPressed: _copyPreviousCustomerFields,
-                  child: Text(loc.translate("copy_previous") ?? "Copy Previous Customer"),
-                ),
-              ],
-            ),
-          ],
+          ),
+        ),
+
+        // The actual form inputs and buttons go inside a Padding + ListView for scrollability
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: ListView(
+            children: [
+              // Customer ID input field
+              TextField(
+                controller: _customerIdController,
+                decoration: InputDecoration(labelText: loc.translate("customer_id") ?? "Customer ID"),
+              ),
+              // Flight ID input field
+              TextField(
+                controller: _flightIdController,
+                decoration: InputDecoration(labelText: loc.translate("flight_id") ?? "Flight ID"),
+              ),
+              // Flight date input field
+              TextField(
+                controller: _dateController,
+                decoration: InputDecoration(labelText: loc.translate("flight_date") ?? "Flight Date (YYYY-MM-DD)"),
+              ),
+              // Reservation name input field
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: loc.translate("reservation_name") ?? "Reservation Name"),
+              ),
+              const SizedBox(height: 20),
+
+              // Buttons row for submitting or copying previous data
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: _addReservation,
+                    child: Text(loc.translate("submit") ?? "Add"),
+                  ),
+                  ElevatedButton(
+                    onPressed: _copyPreviousCustomerFields,
+                    child: Text(loc.translate("copy_previous") ?? "Copy Previous Customer"),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
