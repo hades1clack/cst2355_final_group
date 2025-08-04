@@ -9,14 +9,16 @@ class FlightAddingPage extends StatefulWidget {
   /// Reference to the app's database.
   final FlightDAO flightDAO;
 
+  /// Constructs a [FlightAddingPage] with the provided [FlightDAO].
   const FlightAddingPage({super.key, required this.flightDAO});
 
   @override
   State<FlightAddingPage> createState() => _FlightAddingPageState();
 }
 
+///Handles the form and logic
 class _FlightAddingPageState extends State<FlightAddingPage> {
-  /// Key to validate the form.
+  /// Key to validate the form before submitting.
   final _formKey = GlobalKey<FormState>();
 
   /// Controllers for input fields.
@@ -37,6 +39,7 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
   }
 
   /// Submits the flight to the local database.
+  /// Validates the form fields. If all fields are valid, the data is saved
   Future<void> _submitFlight() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -59,7 +62,9 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
     Navigator.pop(context, true);
   }
 
-  /// Builds the UI for the add flight form.
+  /// Builds the UI for the adding flight form.
+  /// Provides input fields for flight number, cities, and times, along with
+  /// form validation and a submit button
   @override
   Widget build(BuildContext context) {
      return Scaffold(
@@ -67,6 +72,7 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
       appBar: AppBar(
         title: Text("${AppLocalizations.of(context)!.translate('addFlight')}"),
         actions: [
+          /// Language selection menu in the AppBar.
           PopupMenuButton<Locale>(
             icon: const Icon(Icons.language),
             onSelected: (Locale locale) {
@@ -86,6 +92,7 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
           key: _formKey,
           child: ListView(
             children: [
+              /// Input field for flight number.
               TextFormField(
                 controller: _flightNumberController,
                 decoration: InputDecoration(
@@ -95,6 +102,7 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
                     ? AppLocalizations.of(context)!.translate('requiredField')
                     : null,
               ),
+              /// Input field for departure city.
               TextFormField(
                 controller: _departureCityController,
                 decoration: InputDecoration(
@@ -104,6 +112,7 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
                     ? AppLocalizations.of(context)!.translate('requiredField')
                     : null,
               ),
+              /// Input field for destination city.
               TextFormField(
                 controller: _destinationCityController,
                 decoration: InputDecoration(
@@ -113,6 +122,7 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
                     ? AppLocalizations.of(context)!.translate('requiredField')
                     : null,
               ),
+              /// Input field for departure time.
               TextFormField(
                 controller: _departureTimeController,
                 decoration: InputDecoration(
@@ -122,6 +132,7 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
                     ? AppLocalizations.of(context)!.translate('requiredField')
                     : null,
               ),
+              /// Input field for arrival time.
               TextFormField(
                 controller: _arrivalTimeController,
                 decoration: InputDecoration(
@@ -132,6 +143,7 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
                     : null,
               ),
               const SizedBox(height: 20),
+              /// Submit button to save the flight.
               ElevatedButton(
                 onPressed: _submitFlight,
                 child: Text(AppLocalizations.of(context)!.translate('submit')!),

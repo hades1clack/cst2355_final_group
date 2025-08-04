@@ -1,4 +1,5 @@
 ///entity/Flights.dart
+library;
 
 import 'package:floor/floor.dart';
 

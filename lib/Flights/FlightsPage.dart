@@ -6,7 +6,6 @@ import 'package:cst2355_final_group/Database/Flights.dart';
 import 'package:cst2355_final_group/Flights/FlightAddingPage.dart';
 import 'package:cst2355_final_group/main.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'dart:ui';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +22,7 @@ void main() async{
 class MyApp extends StatelessWidget {
   final FlightDAO flightDAO;
 
-  MyApp(this.flightDAO, {Key? key}) : super(key: key);
+  const MyApp(this.flightDAO, {super.key});
 
 
   @override
@@ -205,6 +204,7 @@ class _FlightsPageState extends State<FlightsPage> {
       appBar: AppBar(
         title: Text("${AppLocalizations.of(context)!.translate('flights')}"),
         actions: [
+          /// Language selection menu in the AppBar.
           PopupMenuButton<Locale>(
             icon: const Icon(Icons.language),
             onSelected: (Locale locale) {
@@ -219,6 +219,7 @@ class _FlightsPageState extends State<FlightsPage> {
       ),
       body: Stack(
         children: [
+          ///Handles and controls the format of page
           Positioned.fill(
             child: SizedBox(
               height: double.infinity,
@@ -269,6 +270,7 @@ class _FlightsPageState extends State<FlightsPage> {
                             flex: 2,
                             child: Column(
                               children: [
+                                ///Handles the input fields
                                 Expanded(
                                   child: hasFlights
                                       ? ListView.builder(
@@ -308,6 +310,7 @@ class _FlightsPageState extends State<FlightsPage> {
                                 key: _formKey,
                                 child: ListView(
                                   children: [
+                                    /// Input field for flight number.
                                   _buildTextField(
                                       controller: _flightNumberController,
                                       label: 'Flight Number',
@@ -315,6 +318,7 @@ class _FlightsPageState extends State<FlightsPage> {
                                           ? AppLocalizations.of(context)!.translate('requiredField')
                                           : null,
                                     ),
+                                    /// Input field for departure city.
                                   _buildTextField(
                                       controller: _departureCityController,
                                       label: "${AppLocalizations.of(context)!.translate('departureCity')}",
@@ -322,6 +326,7 @@ class _FlightsPageState extends State<FlightsPage> {
                                           ? AppLocalizations.of(context)!.translate('requiredField')
                                           : null,
                                     ),
+                                    /// Input field for destination city.
                                   _buildTextField(
                                       controller: _destinationCityController,
                                       label: "${AppLocalizations.of(context)!.translate('destinationCity')}",
@@ -329,6 +334,7 @@ class _FlightsPageState extends State<FlightsPage> {
                                           ? AppLocalizations.of(context)!.translate('requiredField')
                                           : null,
                                     ),
+                                    /// Input field for departure time.
                                   _buildTextField(
                                       controller: _departureTimeController,
                                       label: "${AppLocalizations.of(context)!.translate('departureTime')}",
@@ -336,6 +342,7 @@ class _FlightsPageState extends State<FlightsPage> {
                                           ? AppLocalizations.of(context)!.translate('requiredField')
                                           : null,
                                     ),
+                                    /// Input field for arrival time.
                                   _buildTextField(
                                       controller: _arrivalTimeController,
                                       label: "${AppLocalizations.of(context)!.translate('arrivalTime')}",
@@ -344,6 +351,7 @@ class _FlightsPageState extends State<FlightsPage> {
                                           : null,
                                     ),
                                     const SizedBox(height: 20),
+                                    /// update and save the flight.
                                     ElevatedButton(
                                       onPressed: _updateFlight,
                                       child: Text("${AppLocalizations.of(context)!.translate('update')}"),
@@ -374,6 +382,7 @@ class _FlightsPageState extends State<FlightsPage> {
   }
 }
 
+///Builds a text input field
 Widget _buildTextField({
   required TextEditingController controller,
   required String label,
