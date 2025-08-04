@@ -20,7 +20,7 @@ class MyApp extends StatefulWidget {
 
   static void setLocale(BuildContext context, Locale newLocale) {
     final MyAppState? state = context.findAncestorStateOfType<MyAppState>();
-    final _MyAppState? state = context.findAncestorStateOfType<_MyAppState>();
+    // final _MyAppState? state = context.findAncestorStateOfType<_MyAppState>();
     state?.changeLanguage(newLocale);
   }
 
@@ -31,14 +31,7 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   Locale _locale = const Locale('en'); // Default language
 
-  void changeLanguage(Locale locale) {
-
-class _MyAppState extends State<MyApp> {
-  Locale _locale = const Locale("en");
-
-
   void changeLanguage(Locale newLocale) {
-
     setState(() {
       _locale = newLocale;
     });
@@ -67,15 +60,14 @@ class _MyAppState extends State<MyApp> {
           foregroundColor: Colors.white,
         ),
       ),
-
       home: HomePage(
-          locale:_locale,
-
-      home: HomePage(locale: _locale, onLanguageChanged: changeLanguage),
-
+        locale: _locale,
+        onLanguageChanged: changeLanguage,
+      ),
     );
   }
 }
+
 
 class HomePage extends StatelessWidget {
   final Locale locale;
@@ -106,10 +98,7 @@ class HomePage extends StatelessWidget {
                   if (locale != null) onLanguageChanged(locale);
                 },
                 items: const [
-                  DropdownMenuItem(
-                    value: Locale('en'),
-                    child: Text('English'),
-                  ),
+                  DropdownMenuItem(value: Locale('en'), child: Text('English')),
                   DropdownMenuItem(
                     value: Locale('fr'),
                     child: Text('Français'),
@@ -167,10 +156,7 @@ class HomePage extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => page),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (_) => page));
         },
         child: Ink(
           decoration: BoxDecoration(
@@ -195,7 +181,7 @@ class HomePage extends StatelessWidget {
                     blurRadius: 2,
                     color: Colors.black54,
                     offset: Offset(1, 1),
-                  )
+                  ),
                 ],
               ),
             ),

@@ -42,7 +42,7 @@
   "requiredField": "This field is required.",
   "OK": "OK",
   "invalidInputTitle": "Incomplete Form",
-  "invalidInputMessage": "All fields are required."
+  "invalidInputMessage": "All fields are required.",
   "submit": "Submit",
   "copy_previous": "Copy Previous Customer",
   "delete": "Delete",

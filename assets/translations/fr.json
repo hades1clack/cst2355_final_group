@@ -42,6 +42,6 @@
   "requiredField": "Ce champ est obligatoire.",
   "ok": "OK",
   "invalidInputTitle": "Formulaire incomplet",
-  "invalidInputMessage": "Tous les champs sont obligatoires."
+  "invalidInputMessage": "Tous les champs sont obligatoires.",
   "reservation_added": "Réservation ajoutée avec succès"
 }
