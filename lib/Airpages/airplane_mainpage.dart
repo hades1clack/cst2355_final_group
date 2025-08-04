@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:cst2355_final_group/Airdatabase/app_database.dart';
 import 'package:cst2355_final_group/Airdatabase/airplane.dart';
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 /// Main page displaying the list of airplanes.
 class AirplaneListPage extends StatefulWidget {
   /// The Airdatabase instance used to retrieve airplane data.
