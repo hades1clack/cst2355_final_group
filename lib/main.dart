@@ -4,10 +4,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cst2355_final_group/localization/AppLocalizations.dart'; // Your localization class
 
 // These will be uncommented once the other files are added
+import 'localization/AppLocalizations.dart'; // Make sure this is your actual localization class
+import 'reservation_page.dart';
+// TODO: Import other feature pages here once created
 // import 'customer.dart';
 // import 'airplane.dart';
 // import 'flights.dart';
-// import 'reservation.dart';
 
 void main() {
   runApp(MyApp());
@@ -18,6 +20,7 @@ class MyApp extends StatefulWidget {
 
   static void setLocale(BuildContext context, Locale newLocale) {
     final MyAppState? state = context.findAncestorStateOfType<MyAppState>();
+    final _MyAppState? state = context.findAncestorStateOfType<_MyAppState>();
     state?.changeLanguage(newLocale);
   }
 
@@ -29,8 +32,15 @@ class MyAppState extends State<MyApp> {
   Locale _locale = const Locale('en'); // Default language
 
   void changeLanguage(Locale locale) {
+
+class _MyAppState extends State<MyApp> {
+  Locale _locale = const Locale("en");
+
+
+  void changeLanguage(Locale newLocale) {
+
     setState(() {
-      _locale = locale;
+      _locale = newLocale;
     });
   }
 
@@ -41,8 +51,8 @@ class MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       locale: _locale,
       supportedLocales: const [
-        Locale('en'),
-        Locale('fr'),
+        Locale("en"),
+        Locale("fr"),
       ],
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -52,14 +62,17 @@ class MyAppState extends State<MyApp> {
       ],
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
-        )
+        ),
       ),
+
       home: HomePage(
           locale:_locale,
-          onLanguageChanged: changeLanguage),
+
+      home: HomePage(locale: _locale, onLanguageChanged: changeLanguage),
+
     );
   }
 }
@@ -69,10 +82,10 @@ class HomePage extends StatelessWidget {
   final Function(Locale) onLanguageChanged;
 
   const HomePage({
-    Key? key,
+    super.key,
     required this.locale,
     required this.onLanguageChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -82,66 +95,65 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text(t.translate('home_title') ?? 'Main Menu'),
         actions: [
-          Container(
-            color: Colors.blue, // Same as AppBar color
-            padding: EdgeInsets.symmetric(horizontal: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             child: DropdownButtonHideUnderline(
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  canvasColor: Colors.blue,            // Dropdown menu background
-                  highlightColor: Colors.blue[800],    // Selected item highlight
-                  splashColor: Colors.blue[700],       // Tap ripple color
-                  textTheme: Theme.of(context).textTheme.apply(
-                    bodyColor: Colors.white,           // Menu item text color
-                    displayColor: Colors.white,
+              child: DropdownButton<Locale>(
+                value: locale,
+                icon: const Icon(Icons.language, color: Colors.white),
+                dropdownColor: Colors.blue,
+                onChanged: (locale) {
+                  if (locale != null) onLanguageChanged(locale);
+                },
+                items: const [
+                  DropdownMenuItem(
+                    value: Locale('en'),
+                    child: Text('English'),
                   ),
-                ),
-                child: DropdownButton<Locale>(
-                  value: locale,
-                  icon: Icon(Icons.language, color: Colors.white),
-                  dropdownColor: Colors.blue,
-                  onChanged: (locale) {
-                    if (locale != null) onLanguageChanged(locale);
-                  },
-                  items: const [
-                    DropdownMenuItem(
-                      value: Locale('en'),
-                      child: Text('English'),
-                    ),
-                    DropdownMenuItem(
-                      value: Locale('fr'),
-                      child: Text('Français'),
-                    ),
-                  ],
-                ),
+                  DropdownMenuItem(
+                    value: Locale('fr'),
+                    child: Text('Français'),
+                  ),
+                ],
               ),
             ),
           ),
-
         ],
       ),
-
       body: Stack(
         children: [
-          // Background image
           Positioned.fill(
             child: Image.asset(
-              'images/main_bg.jpg', // Make sure this image exists and is declared in pubspec.yaml
+              'images/main_bg.jpg',
               fit: BoxFit.cover,
-              alignment: Alignment.center,//adjust which part of the picture shows in the page
+              alignment: Alignment.center,
             ),
           ),
-          // Foreground content
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // These will be replaced with real navigation once pages are merged
-                buildImageButton(context, t.translate('customer') ?? 'Customer (TODO)', Placeholder()),
-                buildImageButton(context, t.translate('airplane') ?? 'Airplane (TODO)', Placeholder()),
-                buildImageButton(context, t.translate('flights') ?? 'Flights (TODO)', Placeholder()),
-                buildImageButton(context, t.translate('reservation') ?? 'Reservation (TODO)', Placeholder()),
-
+                // TODO: Replace Placeholder() widgets with actual pages
+                buildImageButton(
+                  context,
+                  t.translate('customer') ?? 'Customer',
+                  const Placeholder(),
+                ),
+                buildImageButton(
+                  context,
+                  t.translate('airplane') ?? 'Airplane',
+                  const Placeholder(),
+                ),
+                buildImageButton(
+                  context,
+                  t.translate('flights') ?? 'Flights',
+                  const Placeholder(),
+                ),
+                buildImageButton(
+                  context,
+                  t.translate('reservation') ?? 'Reservation',
+                  const ReservationPage(),
+                ),
               ],
             ),
           ),
@@ -155,12 +167,15 @@ class HomePage extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       child: InkWell(
         onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => page));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => page),
+          );
         },
         child: Ink(
           decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/button_bg.png'), // your button background image file
+            image: const DecorationImage(
+              image: AssetImage('assets/button_bg.png'),
               fit: BoxFit.cover,
             ),
             borderRadius: BorderRadius.circular(8),
@@ -171,7 +186,7 @@ class HomePage extends StatelessWidget {
             width: 250,
             child: Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -189,5 +204,4 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-
 }

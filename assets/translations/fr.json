@@ -10,7 +10,6 @@
   "delete": "Supprimer",
   "close": "Fermer",
   "missing_fields": "Champs manquants",
-  "please_fill": "Veuillez remplir tous les champs",
   "reservation_added": "Réservation ajoutée avec succès",
   "string": "Impressionnant !",
   "string_with_interpolation": "Salut $name, comment ça va ?",
@@ -44,4 +43,5 @@
   "ok": "OK",
   "invalidInputTitle": "Formulaire incomplet",
   "invalidInputMessage": "Tous les champs sont obligatoires."
+  "reservation_added": "Réservation ajoutée avec succès"
 }

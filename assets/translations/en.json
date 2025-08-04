@@ -43,4 +43,11 @@
   "OK": "OK",
   "invalidInputTitle": "Incomplete Form",
   "invalidInputMessage": "All fields are required."
+  "submit": "Submit",
+  "copy_previous": "Copy Previous Customer",
+  "delete": "Delete",
+  "close": "Close",
+  "missing_fields": "Missing fields",
+  "please_fill": "Please fill all fields",
+  "reservation_added": "Reservation added successfully"
 }
