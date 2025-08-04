@@ -5,7 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:cst2355_final_group/localization/AppLocalizations.dart'; // Your localization class
 // These will be uncommented once the other files are added
 import 'customer.dart';
-// import 'airplane.dart';
+import 'airplane_mainpage.dart';
 // import 'flights.dart';
 import 'reservation_page.dart';
 /// Entry point of the Flutter application.
@@ -148,7 +148,10 @@ class HomePage extends StatelessWidget {
                   locale:locale,
                   onLanguageChanged: onLanguageChanged,
                 )),
-                buildImageButton(context, t.translate('airplane') ?? 'Airplane (TODO)', Placeholder()),
+                buildImageButton(context, t.translate('airplane') ?? 'Airplane (TODO)', AirplaneListPage(
+                  locale:locale,
+                  onLanguageChanged: onLanguageChanged,
+                )),
                 buildImageButton(context, t.translate('flights') ?? 'Flights (TODO)', Placeholder()),
                 buildImageButton(context, t.translate('reservation') ?? 'Reservation', const ReservationPage()),
 
