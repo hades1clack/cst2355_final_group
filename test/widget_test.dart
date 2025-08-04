@@ -8,7 +8,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:cst2355_final_group/Airpages/airplane_mainpage.dart';
+import 'package:cst2355_final_group/airplane_mainpage.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {

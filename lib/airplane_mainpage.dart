@@ -2,8 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:cst2355_final_group/Airdatabase/app_database.dart';
 import 'package:cst2355_final_group/Airdatabase/airplane.dart';
-import 'package:cst2355_final_group/Airpages/airplane_detail_page.dart';
+import 'package:cst2355_final_group/airplane_detail_page.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:cst2355_final_group/localization/AppLocalizations.dart';
+
 /// Entry point of the app.
 /// Initializes the Airdatabase and launches the application.
 void main() async{
@@ -12,10 +15,24 @@ void main() async{
   runApp(MyApp(database));
 }
 /// Root widget of the app.
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   /// The Airdatabase instance passed into the app.
   final AppDatabase database;
-  MyApp(this.database, {Key? key}) : super(key: key);
+
+  const MyApp(this.database, {Key? key}) : super(key: key);
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+  class _MyAppState extends State<MyApp> {
+  Locale _locale = const Locale('en');
+
+  void _changeLanguage(Locale locale) {
+  setState(() {
+  _locale = locale;
+  });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +41,22 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
       ),
-      home: AirplaneListPage(database: database),
+     locale: _locale,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('fr'),
+      ],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+
+      home: AirplaneListPage(
+        locale: _locale,
+        onLanguageChanged: _changeLanguage,
+      ),
     );
   }
 }
@@ -32,14 +64,18 @@ class MyApp extends StatelessWidget {
 /// Main page displaying the list of airplanes.
 class AirplaneListPage extends StatefulWidget {
   /// The Airdatabase instance used to retrieve airplane data.
-  final AppDatabase database;
-  const AirplaneListPage({Key? key, required this.database}) : super(key: key);
+  //final AppDatabase database;
+  final Locale locale;
+  final Function(Locale) onLanguageChanged;
+
+  const AirplaneListPage({Key? key, required this.locale, required this.onLanguageChanged,}) : super(key: key);
 
   @override
   _AirplaneListPageState createState() => _AirplaneListPageState();
 }
 
 class _AirplaneListPageState extends State<AirplaneListPage> {
+  AppDatabase? _database; // 异步初始化的数据库实例
   /// Controller for the airplane type input field.
   final TextEditingController _typeController = TextEditingController();
   /// Controller for the passenger count input field.
@@ -53,14 +89,26 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
   /// Currently selected airplane from the list.
   Airplane? _selectedList;
 
+
+
   @override
   void initState() {
     super.initState();
+    _initDatabase();
     _loadAirplanesFromDb();
   }
+  Future<void> _initDatabase() async {
+    final db = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+    setState(() {
+      _database = db;
+    });
+    _loadAirplanesFromDb();
+  }
+
   /// Loads all airplane records from the Airdatabase.
   Future<void> _loadAirplanesFromDb() async {
-    final list = await widget.database.airplaneDao.getAllAirplanes();
+    if(_database == null) return;
+    final list = await _database!.airplaneDao.getAllAirplanes();
     setState(() {
       airplanes = list;
 
@@ -88,7 +136,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
         range: range,
       );
 
-      await widget.database.airplaneDao.updateAirplane(newAirplane);
+      await _database!.airplaneDao.updateAirplane(newAirplane);
 
       _typeController.clear();
       _passengerCountController.clear();
@@ -98,7 +146,8 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       await _loadAirplanesFromDb();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Changes saved successfully!'),
+          //content: Text('Changes saved successfully!'),
+          content: Text("${AppLocalizations.of(context)!.translate("Changes saved successfully!")??"Changes saved successfully!"}"),
           duration: Duration(seconds: 2),
           behavior: SnackBarBehavior.fixed,
         ),
@@ -107,7 +156,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
   }
   /// Deletes a specific airplane from the Airdatabase.
   Future<void> _deleteAirplane(Airplane airplanes) async {
-    await widget.database.airplaneDao.deleteAirplane(airplanes);
+    await _database!.airplaneDao.deleteAirplane(airplanes);
     setState(() {
       if (_selectedList?.id == airplanes.id) {
         _selectedList = null;
@@ -135,24 +184,35 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
   }
   /// Navigates to the airplane detail page to add a new airplane.
   void _navigateToAdd() async {
+    if(_database == null) return; //数据库初始化
     final bool? result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => AirplaneDetailPage(database: widget.database)),
+      MaterialPageRoute(builder: (_) => AirplaneDetailPage(
+        database: _database!,
+      locale: widget.locale,
+      onLanguageChanged: widget.onLanguageChanged)),
     );
     if (result == true) {
       _loadAirplanesFromDb();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Airplane added!')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:
+        Text("${AppLocalizations.of(context)!.translate('Airplane added!')}"),
+      ),);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if(_database == null){
+      return Scaffold(
+        appBar: AppBar(title: Text("${AppLocalizations.of(context)!.translate('Loading...')??'Loading...'}"),),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       backgroundColor: Color(0xFFF0FFFF),
       appBar: AppBar(
-        title: const Text('Airplane List'),
+
+        title: Text("${AppLocalizations.of(context)!.translate('Airplane List')??"Airplane List"}"),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
@@ -160,11 +220,13 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
               showDialog(
                 context: context,
                 builder: (_) => AlertDialog(
-                  title: const Text('Instructions'),
-                  content: const Text(
-                      'Use the + button to add airplanes.\nTap an airplane to edit or delete it.'),
+                  title:
+                  Text("${AppLocalizations.of(context)!.translate('Instructions')??"Instructions"}"),
+                  content:
+                  Text("${AppLocalizations.of(context)!.translate('Use the + button to add airplanes.\nTap an airplane to edit or delete it.')??'Use the + button to add airplanes.\nTap an airplane to edit or delete it.'}"),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+                    TextButton(onPressed: () => Navigator.pop(context), child:
+                  Text("${AppLocalizations.of(context)!.translate('OK')}"),)
                   ],
                 ),
               );
@@ -175,7 +237,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       body: Container(
         decoration: BoxDecoration(
         image: DecorationImage(
-        image: AssetImage('assets/images/sky.jpg'),
+        image: AssetImage('images/sky.jpg'),
         fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(
           Colors.white.withOpacity(0.5),
@@ -195,7 +257,8 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
                 ),
                 Expanded(
                   child: airplanes.isEmpty
-                      ? Center(child: Text('No airplanes yet.'))
+                      ? Center(child:
+                  Text("${AppLocalizations.of(context)!.translate('No airplane yet')??"No airplane yet"}"),)
                       : ListView.builder(
                     itemCount: airplanes.length,
                     itemBuilder: (context, index) {
@@ -229,7 +292,9 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
           Expanded(
             flex: 3,
             child: _selectedList == null
-                ? Center(child: Text('Select an airplane to view/edit.'))
+                ? Center(child:
+                Text("${AppLocalizations.of(context)!.translate('Select an airplane to view/edit.')??"Select an airplane to view/edit."}"),
+            )
                 : _buildDetailEditor(),
           ),
         ],
@@ -251,7 +316,8 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
           children: [
             TextField(
               controller: _typeController,
-              decoration: InputDecoration(labelText: 'Type',
+              decoration: InputDecoration(labelText:
+                AppLocalizations.of(context)!.translate('Type'),
                 labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               inputFormatters: [
@@ -261,21 +327,22 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
               ),
             TextField(
               controller: _passengerCountController,
-              decoration: InputDecoration(labelText: 'Passenger Count',
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.translate('Passenger Count'),
                 labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _maxSpeedController,
-              decoration: InputDecoration(labelText: 'Max Speed',
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.translate('Max Speed'),
                 labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               keyboardType: TextInputType.number,
             ),
             TextField(
               controller: _rangeController,
-              decoration: InputDecoration(labelText: 'Range',
+              decoration: InputDecoration(labelText:
+              AppLocalizations.of(context)!.translate('Range'),
                 labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               keyboardType: TextInputType.number,
@@ -290,7 +357,8 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
                   style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.blue,
                       backgroundColor: Colors.white),
-                  child: const Text('Update'),
+                  child:
+                  Text("${AppLocalizations.of(context)!.translate('Update')}"),
                 ),
                 const SizedBox(width: 10),
                 ElevatedButton(
@@ -300,7 +368,8 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
                   style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Colors.red),
-                  child: const Text('Delete'),
+                  child:
+                  Text("${AppLocalizations.of(context)!.translate('Delete')}"),
                 ),
               ],
             ),
@@ -315,11 +384,14 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirm Save'),
-          content: const Text('Are you sure you want to save changes to this airplane?'),
+          title:
+          Text("${AppLocalizations.of(context)!.translate('Confirm Save')}"),
+          content:
+          Text("${AppLocalizations.of(context)!.translate('Are you sure you want to save changes to this airplane?.')??"Are you sure you want to save changes to this airplane?"}"),
           actions: <Widget>[
             TextButton(
-              child: const Text('Save'),
+              child:
+              Text("${AppLocalizations.of(context)!.translate('Save')}"),
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
                 _editAirplane();
@@ -331,7 +403,8 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
               ),
             ),
             TextButton(
-              child: const Text('Cancel'),
+              child:
+              Text("${AppLocalizations.of(context)!.translate('Cancel')}"),
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
               },
