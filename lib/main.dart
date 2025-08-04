@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:cst2355_final_group/localization/AppLocalizations.dart'; // Your localization class
+
+// These will be uncommented once the other files are added
 import 'localization/AppLocalizations.dart'; // Make sure this is your actual localization class
 import 'reservation_page.dart';
 // TODO: Import other feature pages here once created
@@ -16,19 +19,26 @@ class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   static void setLocale(BuildContext context, Locale newLocale) {
+    final MyAppState? state = context.findAncestorStateOfType<MyAppState>();
     final _MyAppState? state = context.findAncestorStateOfType<_MyAppState>();
     state?.changeLanguage(newLocale);
   }
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<MyApp> createState() => MyAppState();
 }
+
+class MyAppState extends State<MyApp> {
+  Locale _locale = const Locale('en'); // Default language
+
+  void changeLanguage(Locale locale) {
 
 class _MyAppState extends State<MyApp> {
   Locale _locale = const Locale("en");
 
 
   void changeLanguage(Locale newLocale) {
+
     setState(() {
       _locale = newLocale;
     });
@@ -57,7 +67,12 @@ class _MyAppState extends State<MyApp> {
           foregroundColor: Colors.white,
         ),
       ),
+
+      home: HomePage(
+          locale:_locale,
+
       home: HomePage(locale: _locale, onLanguageChanged: changeLanguage),
+
     );
   }
 }

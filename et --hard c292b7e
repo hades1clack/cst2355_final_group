@@ -1,0 +1,26 @@
+[33mcd632e3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mFlights[m[33m)[m Merge branch 'master' of https://github.com/hades1clack/cst2355_final_group into Flights
+[33m8666d23[m[33m ([m[1;31morigin/Flights[m[33m)[m modified colors.
+[33m24362e5[m modified colors.
+[33m8fb9edd[m Created DartDoc
+[33mc292b7e[m Revised en.json, added image
+[33m8441a14[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #2 from hades1clack/Reservation_page_lakshmi
+[33ma980722[m final commit before merge
+[33mf854faa[m Merge remote-tracking branch 'origin/Reservation_page_lakshmi' into Reservation_page_lakshmi
+[33meaf7cc5[m final commit before merge
+[33ma9a2a92[m Merge pull request #1 from hades1clack/Reservation_page_lakshmi
+[33mc9fa092[m Merge branch 'master' into Reservation_page_lakshmi
+[33mc03ecf0[m final commit before merge
+[33m57dddc9[m final commit before merge
+[33m3066980[m Build Database
+[33mc7488fe[m Modified FlightsPage on _navigateToAddFlight
+[33m363d0c8[m Created FlightsPage.dart and FlightAddingPage.dart
+[33m8024ba2[m Created main.dart, Built Applocaizations and en.json/fr.json
+[33m9c9f166[m change class in main.dart from class _MyAppState to MyAppState
+[33m8561fe6[m safe commit
+[33mbc80662[m safe commit
+[33mcef8dff[m safe commit
+[33mb577549[m changes made
+[33ma60f951[m Merge branch 'master' of https://github.com/hades1clack/cst2355_final_group into Flights
+[33m3851bfa[m main branch with language change function added and four button added
+[33ma40eda9[m build variable
+[33m8c83ca6[m[33m ([m[1;31morigin/AirplaneListPage[m[33m, [m[1;32mmaster[m[33m)[m Initial commit
