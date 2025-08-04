@@ -53,17 +53,19 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.translate('flightAdded')!)),
+      SnackBar(content: Text("${AppLocalizations.of(context)!.translate('flightAdded')}"),
+      ),
     );
-    Navigator.pop(context);
+    Navigator.pop(context, true);
   }
 
   /// Builds the UI for the add flight form.
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+     return Scaffold(
+      backgroundColor: Colors.lightBlue[40],
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.translate('addFlight')!),
+        title: Text("${AppLocalizations.of(context)!.translate('addFlight')}"),
         actions: [
           PopupMenuButton<Locale>(
             icon: const Icon(Icons.language),
