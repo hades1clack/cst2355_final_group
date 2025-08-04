@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:cst2355_final_group/database/app_database.dart';
-import 'package:cst2355_final_group/database/airplane.dart';
+import 'package:cst2355_final_group/Airdatabase/app_database.dart';
+import 'package:cst2355_final_group/Airdatabase/airplane.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Airplane detail page used for adding or editing airplane information.
 /// Supports input for airplane type, passenger count, max speed and range.
 class AirplaneDetailPage extends StatefulWidget {
-  /// The database instance used for airplane data operations.
+  /// The Airdatabase instance used for airplane data operations.
   final AppDatabase database;
   /// The airplane being edited; null indicates adding a new airplane.
   final Airplane? airplane;
-  /// Constructor accepting the database and optionally an existing airplane to edit.
+  /// Constructor accepting the Airdatabase and optionally an existing airplane to edit.
   const AirplaneDetailPage({Key? key, required this.database, this.airplane}) : super(key: key);
 
   @override
@@ -64,7 +64,7 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
     _rangeController.dispose();
     super.dispose();
   }
-  /// Validates input and saves airplane data to the database.
+  /// Validates input and saves airplane data to the Airdatabase.
   /// If editing, updates existing airplane; otherwise inserts new.
   /// Also saves current inputs to secure storage for future reuse.
   Future<void> _saveAirplane() async {
@@ -86,12 +86,12 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
     if (isEditMode) {
       await widget.database.airplaneDao.updateAirplane(airplane);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Airplane updated'.tr())),
+        const SnackBar(content: Text('Airplane updated')),
       );
     } else {
       await widget.database.airplaneDao.insertAirplane(airplane);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Airplane added'.tr())),
+        const SnackBar(content: Text('Airplane added')),
       );
     }
     // Save current inputs securely for next time when adding new.
@@ -161,7 +161,7 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditMode ? 'Edit Airplane'.tr() : 'Add Airplane'.tr()),
+        title: Text(isEditMode ? 'Edit Airplane' : 'Add Airplane'),
         backgroundColor: Colors.lightBlue.shade700,
       ),
       body: Stack(
@@ -183,14 +183,14 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
                 children: [
                   _buildTextField(
                     controller: _typeController,
-                    label: 'Airplane Type'.tr(),
+                    label: 'Airplane Type',
                     icon: Icons.flight_takeoff,
                     validator: (value) {
                       if (value == null || value.isEmpty)
-                        return 'Please enter airplane type'.tr();
+                        return 'Please enter airplane type';
                       final regex = RegExp(r'^[a-zA-Z0-9\s\-]+$');
                       if (!regex.hasMatch(value))
-                        return 'Only letters and numbers allowed'.tr();
+                        return 'Only letters and numbers allowed';
                       return null;
                     },
                   ),

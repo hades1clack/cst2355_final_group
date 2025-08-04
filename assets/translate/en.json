@@ -16,10 +16,7 @@
   "delete_airplane": "Delete Airplane",
   "confirm_delete_title": "Confirm Delete",
   "confirm_delete_message": "Delete airplane \"{type}\"?",
-  "yes": "Yes",
-  "no": "No",
   "airplane_updated": "Airplane updated",
   "airplane_added": "Airplane added",
   "airplane_deleted": "Airplane deleted"
-}
 }

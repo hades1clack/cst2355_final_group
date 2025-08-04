@@ -16,8 +16,6 @@
   "delete_airplane": "Supprimer l'avion",
   "confirm_delete_title": "Confirmer la suppression",
   "confirm_delete_message": "Supprimer l'avion \"{type}\" ?",
-  "yes": "Oui",
-  "no": "Non",
   "airplane_updated": "Avion mis à jour",
   "airplane_added": "Avion ajouté",
   "airplane_deleted": "Avion supprimé"

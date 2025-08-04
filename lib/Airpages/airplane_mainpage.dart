@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:cst2355_final_group/database/app_database.dart';
-import 'package:cst2355_final_group/database/airplane.dart';
-import 'package:cst2355_final_group/pages/airplane_detail_page.dart';
+import 'package:cst2355_final_group/Airdatabase/app_database.dart';
+import 'package:cst2355_final_group/Airdatabase/airplane.dart';
+import 'package:cst2355_final_group/Airpages/airplane_detail_page.dart';
 import 'package:flutter/services.dart';
 /// Entry point of the app.
-/// Initializes the database and launches the application.
+/// Initializes the Airdatabase and launches the application.
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   final database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
@@ -12,7 +12,7 @@ void main() async{
 }
 /// Root widget of the app.
 class MyApp extends StatelessWidget {
-  /// The database instance passed into the app.
+  /// The Airdatabase instance passed into the app.
   final AppDatabase database;
   MyApp(this.database, {Key? key}) : super(key: key);
 
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
 }
 /// Main page displaying the list of airplanes.
 class AirplaneListPage extends StatefulWidget {
-  /// The database instance used to retrieve airplane data.
+  /// The Airdatabase instance used to retrieve airplane data.
   final AppDatabase database;
   const AirplaneListPage({Key? key, required this.database}) : super(key: key);
 
@@ -46,7 +46,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
   final TextEditingController _maxSpeedController = TextEditingController();
   /// Controller for the range input field.
   final TextEditingController _rangeController = TextEditingController();
-  /// List of airplanes fetched from the database.
+  /// List of airplanes fetched from the Airdatabase.
   List<Airplane> airplanes = [];
   /// Currently selected airplane from the list.
   Airplane? _selectedList;
@@ -56,7 +56,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
     super.initState();
     _loadAirplanesFromDb();
   }
-  /// Loads all airplane records from the database.
+  /// Loads all airplane records from the Airdatabase.
   Future<void> _loadAirplanesFromDb() async {
     final list = await widget.database.airplaneDao.getAllAirplanes();
     setState(() {
@@ -103,7 +103,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       );
     }
   }
-  /// Deletes a specific airplane from the database.
+  /// Deletes a specific airplane from the Airdatabase.
   Future<void> _deleteAirplane(Airplane airplanes) async {
     await widget.database.airplaneDao.deleteAirplane(airplanes);
     setState(() {

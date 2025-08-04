@@ -10,23 +10,23 @@ abstract class $AppDatabaseBuilderContract {
   /// Adds migrations to the builder.
   $AppDatabaseBuilderContract addMigrations(List<Migration> migrations);
 
-  /// Adds a database [Callback] to the builder.
+  /// Adds a Airdatabase [Callback] to the builder.
   $AppDatabaseBuilderContract addCallback(Callback callback);
 
-  /// Creates the database and initializes it.
+  /// Creates the Airdatabase and initializes it.
   Future<AppDatabase> build();
 }
 
 // ignore: avoid_classes_with_only_static_members
 class $FloorAppDatabase {
-  /// Creates a database builder for a persistent database.
-  /// Once a database is built, you should keep a reference to it and re-use it.
+  /// Creates a Airdatabase builder for a persistent Airdatabase.
+  /// Once a Airdatabase is built, you should keep a reference to it and re-use it.
   static $AppDatabaseBuilderContract databaseBuilder(String name) =>
       _$AppDatabaseBuilder(name);
 
-  /// Creates a database builder for an in memory database.
-  /// Information stored in an in memory database disappears when the process is killed.
-  /// Once a database is built, you should keep a reference to it and re-use it.
+  /// Creates a Airdatabase builder for an in memory Airdatabase.
+  /// Information stored in an in memory Airdatabase disappears when the process is killed.
+  /// Once a Airdatabase is built, you should keep a reference to it and re-use it.
   static $AppDatabaseBuilderContract inMemoryDatabaseBuilder() =>
       _$AppDatabaseBuilder(null);
 }
