@@ -17,9 +17,9 @@ class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   /// Allows child widgets to update the app's locale using context.
-  static void setLocale(BuildContext context, Locale newLocale) {
+  static void setLocale(BuildContext context, Locale locale) {
     final MyAppState? state = context.findAncestorStateOfType<MyAppState>();
-    state?._changeLanguage(newLocale);
+    state?.changeLanguage(locale);
   }
 
   @override
@@ -31,14 +31,14 @@ class MyAppState extends State<MyApp> {
   /// Current selected locale. Defaults to English.
   Locale _locale = Locale('en'); // Default language
   /// Callback to change the app's language.
-  void _changeLanguage(Locale newLocale) {
+  void changeLanguage(Locale locale) {
     setState(() {
-      _locale = newLocale;
+      _locale = locale;
     });
   }
-
   @override
   Widget build(BuildContext context) {
+    print("Building with locale $_locale");
     return MaterialApp(
       title: 'Multilingual App',
       debugShowCheckedModeBanner: false,
@@ -62,7 +62,7 @@ class MyAppState extends State<MyApp> {
       ),
       home: HomePage(
           locale:_locale,
-          onLanguageChanged: _changeLanguage),
+          onLanguageChanged: changeLanguage),
     );
   }
 }

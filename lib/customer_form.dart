@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'AppLocalizations.dart';
+import 'localization/AppLocalizations.dart';
 import 'database/customer.dart';
 import 'repository.dart';
 
