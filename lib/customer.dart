@@ -5,10 +5,16 @@ import 'database/customer.dart';
 import 'database/customer_dao.dart';
 import 'customer_form.dart';
 
+/// A page that displays a list of customers, allows updating or deleting,
+/// and supports multi-language switching.
 class CustomerPage extends StatefulWidget {
+  /// The current locale for the app.
   final Locale locale;
+
+  /// Callback when the user changes the language.
   final Function(Locale) onLanguageChanged;
 
+  /// Creates a [CustomerPage] widget.
   const CustomerPage({
     super.key,
     required this.locale,
@@ -19,16 +25,33 @@ class CustomerPage extends StatefulWidget {
   State<CustomerPage> createState() => _CustomerPageState();
 }
 
+/// The state class for [CustomerPage].
 class _CustomerPageState extends State<CustomerPage> {
+  /// Instance of the Floor database.
   late AppDatabase database;
+
+  /// Data access object (DAO) for customer operations.
   late CustomerDao dao;
+
+  /// List of customers loaded from the database.
   List<Customer> customers = [];
+
+  /// The currently selected customer for editing.
   Customer? selectedCustomer;
+
+  /// Tracks the selected locale in the language dropdown.
   late Locale _currentDropdownLocale;
-  // var _isDaoReady;
+
+  /// Controller for first name input.
   final firstNameController = TextEditingController();
+
+  /// Controller for last name input.
   final lastNameController = TextEditingController();
+
+  /// Controller for address input.
   final addressController = TextEditingController();
+
+  /// Controller for birth date input.
   final birthDateController = TextEditingController();
 
   @override
@@ -37,6 +60,7 @@ class _CustomerPageState extends State<CustomerPage> {
     _initDatabase();
     _currentDropdownLocale = normalizeLocale(widget.locale);
   }
+
   @override
   void didUpdateWidget(CustomerPage oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -45,6 +69,8 @@ class _CustomerPageState extends State<CustomerPage> {
       setState(() {}); // Trigger rebuild to apply new translations
     }
   }
+
+  /// Normalizes the locale to English or French only.
   Locale normalizeLocale(Locale locale) {
     // Ensures you compare only language codes
     switch (locale.languageCode) {
@@ -55,11 +81,13 @@ class _CustomerPageState extends State<CustomerPage> {
         return const Locale('en');
     }
   }
+
   // Future<void> _initDatabase() async {
   //   database = await $FloorAppDatabase.databaseBuilder('customer.db').build();
   //   dao = database.customerDao;
   //   await _refreshCustomers();
   // }
+  /// Initializes the database and loads customer data.
   Future<void> _initDatabase() async {
     database = await $FloorAppDatabase.databaseBuilder('customer.db').build();
     dao = database.customerDao;
@@ -69,11 +97,13 @@ class _CustomerPageState extends State<CustomerPage> {
     });
   }
 
+  /// Refreshes the list of customers from the database.
   Future<void> _refreshCustomers() async {
     customers = await dao.findAll();
     setState(() {});
   }
 
+  /// Clears the customer form fields.
   void _clearForm() {
     firstNameController.clear();
     lastNameController.clear();
@@ -81,6 +111,7 @@ class _CustomerPageState extends State<CustomerPage> {
     birthDateController.clear();
   }
 
+  /// Populates the form fields with the selected customer's data.
   void _populateForm(Customer customer) {
     firstNameController.text = customer.firstName;
     lastNameController.text = customer.lastName;
@@ -88,6 +119,7 @@ class _CustomerPageState extends State<CustomerPage> {
     birthDateController.text = customer.birthDate;
   }
 
+  /// Updates the selected customer in the database.
   Future<void> _updateCustomer() async {
     if (selectedCustomer == null) return;
 
@@ -100,28 +132,32 @@ class _CustomerPageState extends State<CustomerPage> {
     await dao.updateCustomer(selectedCustomer!);
     await _refreshCustomers();
     setState(() {
-      selectedCustomer=null;// Go back to list after update
+      selectedCustomer = null; // Go back to list after update
     });
   }
 
+  /// Confirms deletion of a customer with a dialog.
   Future<void> _confirmDelete(Customer customer) async {
     final t = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(t.translate('confirm_delete') ?? 'Confirm Delete'),
-        content: Text('${t.translate('delete_customer')} ${customer.firstName}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(t.translate('cancel') ?? 'Cancel'),
+      builder:
+          (_) => AlertDialog(
+            title: Text(t.translate('confirm_delete') ?? 'Confirm Delete'),
+            content: Text(
+              '${t.translate('delete_customer')} ${customer.firstName}?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(t.translate('cancel') ?? 'Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(t.translate('delete') ?? 'Delete'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(t.translate('delete') ?? 'Delete'),
-          ),
-        ],
-      ),
     );
     if (confirm == true) {
       await dao.deleteCustomer(customer);
@@ -132,27 +168,31 @@ class _CustomerPageState extends State<CustomerPage> {
       });
 
       await _refreshCustomers();
-
     }
   }
 
+  /// Builds the widget that displays the list of customers,
+  /// along with the "Add" button for adding new customers.
   Widget _buildCustomerList(AppLocalizations t) {
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(t.translate('customer_list') ?? 'Customer List',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              t.translate('customer_list') ?? 'Customer List',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             ElevatedButton.icon(
               onPressed: () async {
                 final Customer? newCustomer = await Navigator.push<Customer>(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => CustomerFormPage(
-                      locale: widget.locale,
-                      onLanguageChanged: widget.onLanguageChanged,
-                    ),
+                    builder:
+                        (_) => CustomerFormPage(
+                          locale: widget.locale,
+                          onLanguageChanged: widget.onLanguageChanged,
+                        ),
                   ),
                 );
 
@@ -161,11 +201,21 @@ class _CustomerPageState extends State<CustomerPage> {
                     await dao.insertCustomer(newCustomer);
                     await _refreshCustomers();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(t.translate('customer_added_successfully') ?? 'Customer added successfully')),
+                      SnackBar(
+                        content: Text(
+                          t.translate('customer_added_successfully') ??
+                              'Customer added successfully',
+                        ),
+                      ),
                     );
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(t.translate('add_failed') ?? 'Failed to add customer: $e')),
+                      SnackBar(
+                        content: Text(
+                          t.translate('add_failed') ??
+                              'Failed to add customer: $e',
+                        ),
+                      ),
                     );
                   }
                 }
@@ -177,29 +227,35 @@ class _CustomerPageState extends State<CustomerPage> {
         ),
         const SizedBox(height: 10),
         Expanded(
-          child: customers.isEmpty
-              ? Center(child: Text(t.translate('no_customers') ?? 'No customers available'))
-              : ListView.builder(
-            itemCount: customers.length,
-            itemBuilder: (context, index) {
-              final c = customers[index];
-              return ListTile(
-                title: Text('${c.firstName} ${c.lastName}'),
-                subtitle: Text(c.address),
-                onTap: () {
-                  setState(() {
-                    selectedCustomer = c;
-                    _populateForm(c);
-                  });
-                },
-              );
-            },
-          ),
+          child:
+              customers.isEmpty
+                  ? Center(
+                    child: Text(
+                      t.translate('no_customers') ?? 'No customers available',
+                    ),
+                  )
+                  : ListView.builder(
+                    itemCount: customers.length,
+                    itemBuilder: (context, index) {
+                      final c = customers[index];
+                      return ListTile(
+                        title: Text('${c.firstName} ${c.lastName}'),
+                        subtitle: Text(c.address),
+                        onTap: () {
+                          setState(() {
+                            selectedCustomer = c;
+                            _populateForm(c);
+                          });
+                        },
+                      );
+                    },
+                  ),
         ),
       ],
     );
   }
 
+  /// Builds the form used to view or update the selected customer's details.
   Widget _buildDetails(AppLocalizations t) {
     if (selectedCustomer == null) {
       return const Center(child: Text(''));
@@ -211,19 +267,27 @@ class _CustomerPageState extends State<CustomerPage> {
         children: [
           TextFormField(
             controller: firstNameController,
-            decoration: InputDecoration(labelText: t.translate('first_name') ?? 'First Name'),
+            decoration: InputDecoration(
+              labelText: t.translate('first_name') ?? 'First Name',
+            ),
           ),
           TextFormField(
             controller: lastNameController,
-            decoration: InputDecoration(labelText: t.translate('last_name') ?? 'Last Name'),
+            decoration: InputDecoration(
+              labelText: t.translate('last_name') ?? 'Last Name',
+            ),
           ),
           TextFormField(
             controller: addressController,
-            decoration: InputDecoration(labelText: t.translate('address') ?? 'Address'),
+            decoration: InputDecoration(
+              labelText: t.translate('address') ?? 'Address',
+            ),
           ),
           TextFormField(
             controller: birthDateController,
-            decoration: InputDecoration(labelText: t.translate('birth_date') ?? 'Birth Date'),
+            decoration: InputDecoration(
+              labelText: t.translate('birth_date') ?? 'Birth Date',
+            ),
           ),
           const SizedBox(height: 20),
           Row(
@@ -253,12 +317,14 @@ class _CustomerPageState extends State<CustomerPage> {
                 child: Text(t.translate('close') ?? 'Close'),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
   }
 
+  /// Builds a responsive layout that adjusts between vertical and horizontal views
+  /// based on screen size and orientation.
   Widget _responsiveLayout(AppLocalizations t) {
     final size = MediaQuery.of(context).size;
     if (size.width > size.height && size.width > 720) {
@@ -275,6 +341,7 @@ class _CustomerPageState extends State<CustomerPage> {
     }
   }
 
+  /// Builds the language selection dropdown used in the AppBar.
   Widget _buildLanguageDropdown() {
     return Container(
       color: Colors.blue, // Match your AppBar background
@@ -299,7 +366,9 @@ class _CustomerPageState extends State<CustomerPage> {
                 setState(() {
                   _currentDropdownLocale = locale; // update local selection
                 });
-                widget.onLanguageChanged(locale); // notify parent to change language
+                widget.onLanguageChanged(
+                  locale,
+                ); // notify parent to change language
               }
             },
             items: const [
@@ -312,7 +381,8 @@ class _CustomerPageState extends State<CustomerPage> {
     );
   }
 
-
+  /// Builds the overall widget tree including the AppBar, background image,
+  /// and responsive layout.
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
@@ -321,17 +391,12 @@ class _CustomerPageState extends State<CustomerPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(t.translate('customer_list') ?? 'Customer List'),
-        actions: [
-          _buildLanguageDropdown()
-        ],
+        actions: [_buildLanguageDropdown()],
       ),
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset(
-              'images/customer_bg.jpg',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset('images/customer_bg.jpg', fit: BoxFit.cover),
           ),
           // Container(
           //   color: Colors.black.withOpacity(0.4), // Optional overlay for readability
@@ -339,10 +404,10 @@ class _CustomerPageState extends State<CustomerPage> {
           _responsiveLayout(t),
         ],
       ),
-
     );
   }
 
+  /// Disposes all text controllers to free up memory.
   @override
   void dispose() {
     firstNameController.dispose();

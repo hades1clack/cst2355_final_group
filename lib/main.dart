@@ -8,19 +8,20 @@ import 'AppLocalizations.dart'; // Your localization class
 // import 'airplane.dart';
 // import 'flights.dart';
 // import 'reservation.dart';
-
+/// Entry point of the Flutter application.
 void main() {
   runApp(MyApp());
 }
-
+/// The root widget of the application that supports dynamic locale switching.
 class MyApp extends StatefulWidget {
   @override
   State<MyApp> createState() => MyAppState();
 }
-
+/// The state class for [MyApp] that manages the current app locale.
 class MyAppState extends State<MyApp> {
+  /// Current selected locale. Defaults to English.
   Locale _locale = Locale('en'); // Default language
-
+  /// Callback to change the app's language.
   void _changeLanguage(Locale locale) {
     setState(() {
       _locale = locale;
@@ -56,11 +57,13 @@ class MyAppState extends State<MyApp> {
     );
   }
 }
-
+/// The main menu screen with navigation options and language selection.
 class HomePage extends StatelessWidget {
+  /// The current locale of the app.
   final Locale locale;
+  /// Callback to notify when the language has changed.
   final Function(Locale) onLanguageChanged;
-
+  /// Constructs the [HomePage].
   const HomePage({
     Key? key,
     required this.locale,
@@ -75,6 +78,7 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text(t.translate('home_title') ?? 'Main Menu'),
         actions: [
+          /// Language dropdown menu in the AppBar.
           Container(
             color: Colors.blue, // Same as AppBar color
             padding: EdgeInsets.symmetric(horizontal: 12),
@@ -116,7 +120,7 @@ class HomePage extends StatelessWidget {
 
       body: Stack(
         children: [
-          // Background image
+          /// Background image for aesthetic design.
           Positioned.fill(
             child: Image.asset(
               'images/main_bg.jpg', // Make sure this image exists and is declared in pubspec.yaml
@@ -125,6 +129,7 @@ class HomePage extends StatelessWidget {
             ),
           ),
           // Foreground content
+          /// Navigation buttons to other modules.
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -145,7 +150,11 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-
+  /// Builds a clickable button styled with a background image to navigate to a new page.
+  ///
+  /// - [context]: BuildContext to use for navigation.
+  /// - [title]: Button label text.
+  /// - [page]: Widget to navigate to when tapped.
   Widget buildImageButton(BuildContext context, String title, Widget page) {
     return Padding(
       padding: const EdgeInsets.all(12.0),

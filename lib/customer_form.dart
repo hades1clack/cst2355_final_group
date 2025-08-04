@@ -3,10 +3,16 @@ import 'AppLocalizations.dart';
 import 'database/customer.dart';
 import 'repository.dart';
 
+/// A form page that allows the user to enter or edit customer information.
+/// Includes localization and support for loading previously saved data.
 class CustomerFormPage extends StatefulWidget {
+  /// The current locale for localization.
   final Locale locale;
+
+  /// Callback function that triggers when the user changes the language.
   final Function(Locale) onLanguageChanged;
 
+  /// Creates a [CustomerFormPage].
   const CustomerFormPage({
     super.key,
     required this.locale,
@@ -16,27 +22,44 @@ class CustomerFormPage extends StatefulWidget {
   State<CustomerFormPage> createState() => _CustomerFormPageState();
 }
 
+/// The state class for [CustomerFormPage].
 class _CustomerFormPageState extends State<CustomerFormPage> {
+  /// Key used to identify and validate the form.
   final _formKey = GlobalKey<FormState>();
+
+  /// Controller for the first name input field.
   final TextEditingController firstNameController = TextEditingController();
+
+  /// Controller for the last name input field.
   final TextEditingController lastNameController = TextEditingController();
+
+  /// Controller for the address input field.
   final TextEditingController addressController = TextEditingController();
+
+  /// Controller for the birth date input field.
   final TextEditingController birthDateController = TextEditingController();
+
+  /// Tracks the selected language from the dropdown.
   late Locale _currentDropdownLocale;
   @override
   void initState() {
     super.initState();
     _currentDropdownLocale = _normalizeLocale(widget.locale);
+    // Prompt the user to load saved form data after build
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final shouldLoad = await showDialog<bool>(
         context: context,
-        builder:
-            (context) {
+        builder: (context) {
           final t = AppLocalizations.of(context)!;
 
           return AlertDialog(
-            title: Text(t.translate('load_data_title') ?? 'Load previous data?'),
-            content: Text(t.translate('load_data_prompt') ?? 'Do you want to load the last saved customer data?'),
+            title: Text(
+              t.translate('load_data_title') ?? 'Load previous data?',
+            ),
+            content: Text(
+              t.translate('load_data_prompt') ??
+                  'Do you want to load the last saved customer data?',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -56,7 +79,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
       }
     });
 
-    // Save form changes
+    // Add listeners to auto-save input changes
     firstNameController.addListener(() {
       DataRepository.firstName = firstNameController.text;
       DataRepository.saveData();
@@ -85,6 +108,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
     }
   }
 
+  /// Normalizes the locale to 'en' or 'fr' only.
   Locale _normalizeLocale(Locale locale) {
     switch (locale.languageCode) {
       case 'fr':
@@ -95,6 +119,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
     }
   }
 
+  /// Validates and saves the form, then returns a [Customer] object back to the previous screen.
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -108,6 +133,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
     Navigator.pop(context, newCustomer); // send customer back
   }
 
+  /// Loads previously saved form data from the [DataRepository] into the input fields.
   void _loadDataIntoFields() async {
     await DataRepository.loadData();
     setState(() {
@@ -127,6 +153,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
       appBar: AppBar(
         title: Text(t.translate('add_customer') ?? 'Add Customer'),
         actions: [
+          /// Language selection dropdown in the AppBar.
           DropdownButtonHideUnderline(
             child: Theme(
               data: Theme.of(context).copyWith(
@@ -147,12 +174,17 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                     setState(() {
                       _currentDropdownLocale = locale; // update local selection
                     });
-                    widget.onLanguageChanged(locale); // notify parent to change language
+                    widget.onLanguageChanged(
+                      locale,
+                    ); // notify parent to change language
                   }
                 },
                 items: const [
                   DropdownMenuItem(value: Locale('en'), child: Text('English')),
-                  DropdownMenuItem(value: Locale('fr'), child: Text('Français')),
+                  DropdownMenuItem(
+                    value: Locale('fr'),
+                    child: Text('Français'),
+                  ),
                 ],
               ),
             ),
@@ -173,6 +205,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
               key: _formKey,
               child: ListView(
                 children: [
+                  /// Input field for first name.
                   TextFormField(
                     controller: firstNameController,
                     decoration: InputDecoration(
@@ -184,6 +217,8 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                                 ? t.translate('field_required') ?? 'Required'
                                 : null,
                   ),
+
+                  /// Input field for last name.
                   TextFormField(
                     controller: lastNameController,
                     decoration: InputDecoration(
@@ -195,6 +230,8 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                                 ? t.translate('field_required') ?? 'Required'
                                 : null,
                   ),
+
+                  /// Input field for address.
                   TextFormField(
                     controller: addressController,
                     decoration: InputDecoration(
@@ -206,6 +243,8 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                                 ? t.translate('field_required') ?? 'Required'
                                 : null,
                   ),
+
+                  /// Input field for birth date.
                   TextFormField(
                     controller: birthDateController,
                     decoration: InputDecoration(
@@ -218,9 +257,13 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
                                 : null,
                   ),
                   const SizedBox(height: 20),
+
+                  /// Submit button to save the form.
                   ElevatedButton(
                     onPressed: _save,
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                    ),
                     child: Text(t.translate('Submit') ?? 'Submit'),
                   ),
                 ],
@@ -232,6 +275,7 @@ class _CustomerFormPageState extends State<CustomerFormPage> {
     );
   }
 
+  /// Disposes all text controllers when the widget is removed from the widget tree.
   @override
   void dispose() {
     firstNameController.dispose();
