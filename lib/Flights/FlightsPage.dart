@@ -72,10 +72,11 @@ class _MyAppState extends State<MyApp> {
 /// FlightsPage displays the list of flights and allows adding, updating or deleting them.
 /// Displays a message if no flight exists and navigates to FlightsAddingPage to add a new flight.
 class FlightsPage extends StatefulWidget {
-
+  /// The current locale of the app, used for localization.
   final Locale locale;
+  /// Callback function to change the app's language.
   final void Function(Locale) onLanguageChanged;
-
+  /// Constructs the FlightsPage with required locale and language change callback.
   const FlightsPage({
     super.key,
     required this.locale,
@@ -92,23 +93,24 @@ class _FlightsPageState extends State<FlightsPage> {
   late FlightsDatabase database;
   ///Declares Flight's local database instance
   late FlightDAO flightDAO;
-
   ///Creates an empty array
   List<Flights> _flights = [];
-
   ///The selected flight for editing
   Flights? _selectedFlight;
-
   ///Form key for validation
   final _formKey = GlobalKey<FormState>();
 
   ///Controllers for the flight detail form fields
   final _flightNumberController = TextEditingController();
+  /// Controller for departure city input field.
   final _departureCityController = TextEditingController();
+  /// Controller for destination city input field.
   final _destinationCityController = TextEditingController();
+  /// Controller for departure time input field.
   final _departureTimeController = TextEditingController();
+  /// Controller for arrival time input field.
   final _arrivalTimeController = TextEditingController();
-
+  /// Initializes the database and DAO, then loads flights from the database.
   Future<void> initDatabase() async {
     database = await $FloorFlightsDatabase.databaseBuilder('flights_database.db').build();
     ///Using getDao to access database
@@ -264,7 +266,7 @@ class _FlightsPageState extends State<FlightsPage> {
               height: double.infinity,
               width: double.infinity,
               child: Image.asset(
-                'assets/images/flights_schedule.jpg',
+                'images/flight2.jpg',
                 fit: BoxFit.cover,
                 color: Colors.white.withAlpha(128),
                 colorBlendMode: BlendMode.lighten,

@@ -13,11 +13,13 @@ class ReservationPage extends StatefulWidget {
   @override
   State<ReservationPage> createState() => _ReservationPageState();
 }
-
+/// Main page that displays a list of reservations and allows adding/deleting them.
 class _ReservationPageState extends State<ReservationPage> {
+  /// Instance of the reservation database.
   late ReservationDatabase db; // Database instance
+  /// Data Access Object for performing CRUD operations on reservations.
   late ReservationDao dao; // Data Access Object to perform DB operations
-
+  /// List holding all the reservations fetched from the database.
   List<Reservation> _reservations = []; // List of all reservations
 
   @override

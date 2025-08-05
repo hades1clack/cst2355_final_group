@@ -23,9 +23,13 @@ class _FlightAddingPageState extends State<FlightAddingPage> {
 
   /// Controllers for input fields.
   final _flightNumberController = TextEditingController();
+  /// Controller for the departure city input field.
   final _departureCityController = TextEditingController();
+  /// Controller for the destination city input field.
   final _destinationCityController = TextEditingController();
+  /// Controller for the departure time input field.
   final _departureTimeController = TextEditingController();
+  /// Controller for the arrival time input field.
   final _arrivalTimeController = TextEditingController();
 
   @override

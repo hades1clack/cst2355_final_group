@@ -218,10 +218,13 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
                     icon: Icons.event_seat,
                     keyboardType: TextInputType.number,
                     validator: (value) {
-                      if (value == null || value.isEmpty) return AppLocalizations.of(context)!.translate('Please enter passenger count');
+                      if (value == null || value.isEmpty)
+                        return AppLocalizations.of(context)!.translate('Please enter passenger count');
                       final number = double.tryParse(value);
-                      if (number == null) return AppLocalizations.of(context)!.translate('Must be a valid number');
-                      if (number <= 0) return AppLocalizations.of(context)!.translate('Must be greater then 0');'Must be greater than 0';
+                      if (number == null)
+                        return AppLocalizations.of(context)!.translate('Must be a valid number');
+                      if (number <= 0)
+                        return AppLocalizations.of(context)!.translate('Must be greater than 0');
                       return null;
                     },
                   ),
@@ -255,7 +258,7 @@ class _AirplaneDetailPageState extends State<AirplaneDetailPage> {
                   ElevatedButton.icon(
                     onPressed: _saveAirplane,
                     icon: const Icon(Icons.add_circle),
-                    label: Text(AppLocalizations.of(context)!.translate(isEditMode ? 'Update Airplane' : 'Add Airplane')??"update"),
+                    label: Text(AppLocalizations.of(context)!.translate(isEditMode ? 'Update Airplane' : 'Add Airplane')??"Add"),
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Colors.lightBlue.shade700,

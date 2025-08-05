@@ -145,7 +145,7 @@ class HomePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // These will be replaced with real navigation once pages are merged
-                buildImageButton(context, t.translate('customer') ?? 'Customer (TODO)', CustomerPage(
+                buildImageButton(context, t.translate('customer') ?? 'Customer', CustomerPage(
                   locale:locale,
                   onLanguageChanged: onLanguageChanged,
                 )),
@@ -153,7 +153,7 @@ class HomePage extends StatelessWidget {
                   locale:locale,
                   onLanguageChanged: onLanguageChanged,
                 )),
-                buildImageButton(context, t.translate('flights') ?? 'Flights', FlightsPage(
+                buildImageButton(context, t.translate('flight') ?? 'Flights', FlightsPage(
                     locale: locale,
                     onLanguageChanged: onLanguageChanged)),
                 buildImageButton(context, t.translate('reservation') ?? 'Reservation', const ReservationPage()),

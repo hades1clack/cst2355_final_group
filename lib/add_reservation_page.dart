@@ -6,21 +6,25 @@ import 'localization/AppLocalizations.dart'; // Import localization
 
 /// Page for adding a new reservation with fields and encrypted shared preferences.
 class AddReservationPage extends StatefulWidget {
+  /// The database instance used to perform reservation data operations.
   final ReservationDatabase database;
-
+  /// Creates an AddReservationPage with the required database.
   const AddReservationPage({super.key, required this.database});
 
   @override
   State<AddReservationPage> createState() => _AddReservationPageState();
 }
-
+/// Manages form input, controls text editing, and interacts with the reservation DAO.
 class _AddReservationPageState extends State<AddReservationPage> {
-  late final dao; // DAO for database operations
-
+  /// Data Access Object for reservation operations, initialized from [widget.database].
+  late final dao;
   // Text controllers for input fields
   final TextEditingController _customerIdController = TextEditingController();
+  /// Controller for the Flight ID input field.
   final TextEditingController _flightIdController = TextEditingController();
+  /// Controller for the Date input field.
   final TextEditingController _dateController = TextEditingController();
+  /// Controller for the Reservation Name input field.
   final TextEditingController _nameController = TextEditingController();
 
   // Encrypted Shared Preferences instance to store last entered values securely

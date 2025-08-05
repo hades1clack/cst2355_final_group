@@ -18,16 +18,17 @@ void main() async{
 class MyApp extends StatefulWidget {
   /// The Airdatabase instance passed into the app.
   final AppDatabase database;
-
+  /// Creates the main app widget with the given database instance.
   const MyApp(this.database, {Key? key}) : super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
-
+ /// This class manages the current locale of the app
+ /// and provides a method to update the language dynamically.
   class _MyAppState extends State<MyApp> {
   Locale _locale = const Locale('en');
-
+  /// This would switch the app's language to French.
   void _changeLanguage(Locale locale) {
   setState(() {
   _locale = locale;
@@ -64,18 +65,20 @@ class MyApp extends StatefulWidget {
 /// Main page displaying the list of airplanes.
 class AirplaneListPage extends StatefulWidget {
   /// The Airdatabase instance used to retrieve airplane data.
-  //final AppDatabase database;
+  ///final AppDatabase database;
   final Locale locale;
+  /// Callback function to handle language changes.
   final Function(Locale) onLanguageChanged;
-
+  /// Creates an AirplaneListPage with the specified locale and language change handler.
   const AirplaneListPage({Key? key, required this.locale, required this.onLanguageChanged,}) : super(key: key);
 
   @override
   _AirplaneListPageState createState() => _AirplaneListPageState();
 }
-
+///This state class manages the UI and logic for displaying,
+/// adding, editing, and deleting airplane records in the app.
 class _AirplaneListPageState extends State<AirplaneListPage> {
-  AppDatabase? _database; // 异步初始化的数据库实例
+  AppDatabase? _database;
   /// Controller for the airplane type input field.
   final TextEditingController _typeController = TextEditingController();
   /// Controller for the passenger count input field.
@@ -84,12 +87,10 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
   final TextEditingController _maxSpeedController = TextEditingController();
   /// Controller for the range input field.
   final TextEditingController _rangeController = TextEditingController();
-  /// List of airplanes fetched from the Airdatabase.
+  /// List of airplanes fetched from the Airplanedatabase.
   List<Airplane> airplanes = [];
   /// Currently selected airplane from the list.
   Airplane? _selectedList;
-
-
 
   @override
   void initState() {
@@ -97,6 +98,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
     _initDatabase();
     _loadAirplanesFromDb();
   }
+///Initializes the Floor database and loads the list of airplanes.
   Future<void> _initDatabase() async {
     final db = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
     setState(() {
@@ -104,7 +106,6 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
     });
     _loadAirplanesFromDb();
   }
-
   /// Loads all airplane records from the Airdatabase.
   Future<void> _loadAirplanesFromDb() async {
     if(_database == null) return;
@@ -195,7 +196,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
     if (result == true) {
       _loadAirplanesFromDb();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:
-        Text("${AppLocalizations.of(context)!.translate('Airplane added!')}"),
+        Text("${AppLocalizations.of(context)!.translate('Airplane added!')??"Airplane added!"}"),
       ),);
     }
   }
