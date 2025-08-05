@@ -91,12 +91,31 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
   List<Airplane> airplanes = [];
   /// Currently selected airplane from the list.
   Airplane? _selectedList;
+  late Locale _currentDropdownLocale;
 
   @override
   void initState() {
     super.initState();
     _initDatabase();
     _loadAirplanesFromDb();
+    _currentDropdownLocale = normalizeLocale(widget.locale);
+  }
+  Locale normalizeLocale(Locale locale) {
+    switch (locale.languageCode) {
+      case 'fr':
+        return const Locale('fr');
+      case 'en':
+      default:
+        return const Locale('en');
+    }
+  }
+  @override
+  void didUpdateWidget(covariant AirplaneListPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.locale != widget.locale) {
+      _currentDropdownLocale = normalizeLocale(widget.locale);
+      setState(() {});
+    }
   }
 ///Initializes the Floor database and loads the list of airplanes.
   Future<void> _initDatabase() async {
@@ -233,6 +252,7 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
               );
             },
           ),
+          _buildLanguageDropdown(), // <- Add this line
         ],
       ),
       body: Container(
@@ -415,4 +435,40 @@ class _AirplaneListPageState extends State<AirplaneListPage> {
       },
     );
   }
+  Widget _buildLanguageDropdown() {
+    return Container(
+      color: Colors.blue,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonHideUnderline(
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            canvasColor: Colors.blue,
+            highlightColor: Colors.blue[800],
+            splashColor: Colors.blue[700],
+            textTheme: Theme.of(context).textTheme.apply(
+              bodyColor: Colors.white,
+              displayColor: Colors.white,
+            ),
+          ),
+          child: DropdownButton<Locale>(
+            value: _currentDropdownLocale,
+            icon: const Icon(Icons.language, color: Colors.white),
+            onChanged: (Locale? locale) {
+              if (locale != null) {
+                setState(() {
+                  _currentDropdownLocale = locale;
+                });
+                widget.onLanguageChanged(locale); // Inform parent
+              }
+            },
+            items: const [
+              DropdownMenuItem(value: Locale('en'), child: Text('English')),
+              DropdownMenuItem(value: Locale('fr'), child: Text('Français')),
+            ],
+          ),
+        ),
+      ),
+    );
   }
+
+}
