@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:cst2355_final_group/Flights/FlightsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 // import 'AppLocalizations.dart'; // Your localization class
@@ -148,11 +149,13 @@ class HomePage extends StatelessWidget {
                   locale:locale,
                   onLanguageChanged: onLanguageChanged,
                 )),
-                buildImageButton(context, t.translate('airplane') ?? 'Airplane (TODO)', AirplaneListPage(
+                buildImageButton(context, t.translate('airplane') ?? 'Airplane', AirplaneListPage(
                   locale:locale,
                   onLanguageChanged: onLanguageChanged,
                 )),
-                buildImageButton(context, t.translate('flights') ?? 'Flights (TODO)', Placeholder()),
+                buildImageButton(context, t.translate('flights') ?? 'Flights', FlightsPage(
+                    locale: locale,
+                    onLanguageChanged: onLanguageChanged)),
                 buildImageButton(context, t.translate('reservation') ?? 'Reservation', const ReservationPage()),
 
               ],

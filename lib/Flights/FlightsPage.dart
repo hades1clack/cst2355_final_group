@@ -19,11 +19,29 @@ void main() async{
   runApp(MyApp(flightDAO));
 }
 
-class MyApp extends StatelessWidget {
+/// The main application widget that manages language settings and routing.
+class MyApp extends StatefulWidget {
+  /// Data access object for flights, provided at app start.
   final FlightDAO flightDAO;
 
+  /// Constructs the MyApp widget with the given flightDAO.
   const MyApp(this.flightDAO, {super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+/// The state for MyApp that manages the locale and navigation.
+class _MyAppState extends State<MyApp> {
+  Locale  _locale = const Locale('en');
+
+  /// Changes the app language to the specified locale.
+  void _changeLanguage(Locale locale) {
+    if (_locale != locale) {
+      setState(() {
+        _locale = locale;
+      });
+    } }
 
   @override
   Widget build(BuildContext context) {
@@ -32,17 +50,21 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
       ),
+      locale: _locale,
+      supportedLocales: const [
+        Locale('en'),
+        Locale('fr'),
+      ],
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('en'),
-        Locale('fr'),
-      ],
-      home: FlightsPage(flightDAO: flightDAO),
+      home: FlightsPage(
+        locale: _locale,
+        onLanguageChanged: _changeLanguage,
+      ),
     );
   }
 }
@@ -51,17 +73,26 @@ class MyApp extends StatelessWidget {
 /// Displays a message if no flight exists and navigates to FlightsAddingPage to add a new flight.
 class FlightsPage extends StatefulWidget {
 
+  final Locale locale;
+  final void Function(Locale) onLanguageChanged;
 
-  ///Declares Flight's local database instance
-  final FlightDAO flightDAO;
-
-  const FlightsPage({super.key, required this.flightDAO});
+  const FlightsPage({
+    super.key,
+    required this.locale,
+    required this.onLanguageChanged,
+  });
 
   @override
   State<FlightsPage> createState() => _FlightsPageState();
 }
 
 class _FlightsPageState extends State<FlightsPage> {
+
+  ///Declares Flight's local database instance
+  late FlightsDatabase database;
+  ///Declares Flight's local database instance
+  late FlightDAO flightDAO;
+
   ///Creates an empty array
   List<Flights> _flights = [];
 
@@ -78,15 +109,23 @@ class _FlightsPageState extends State<FlightsPage> {
   final _departureTimeController = TextEditingController();
   final _arrivalTimeController = TextEditingController();
 
+  Future<void> initDatabase() async {
+    database = await $FloorFlightsDatabase.databaseBuilder('flights_database.db').build();
+    ///Using getDao to access database
+    flightDAO = database.getDao;
+    loadFlights();
+  }
+
   @override
   void initState() {
     super.initState();
+    initDatabase();
     loadFlights();
   }
 
   ///Loads flights from database
   Future<void> loadFlights() async {
-    final flights = await widget.flightDAO.getAllFlight();
+    final flights = await flightDAO.getAllFlight();
 
     setState(() {
       _flights = flights;
@@ -126,13 +165,13 @@ class _FlightsPageState extends State<FlightsPage> {
       arrivalTime: _arrivalTimeController.text.trim(),
     );
 
-    await widget.flightDAO.updateFlights(updatedFlight);
+    await flightDAO.updateFlights(updatedFlight);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text("${AppLocalizations.of(context)!.translate("flightUpdated")}"),
-          duration: Duration(seconds: 2),
-          behavior: SnackBarBehavior.fixed,
+        content: Text("${AppLocalizations.of(context)!.translate("flightUpdated")}"),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.fixed,
       ),
     );
     await loadFlights();
@@ -143,7 +182,7 @@ class _FlightsPageState extends State<FlightsPage> {
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (_) => FlightAddingPage(flightDAO: widget.flightDAO),
+        builder: (_) => FlightAddingPage(flightDAO: flightDAO),
       ),
     );
 
@@ -161,7 +200,7 @@ class _FlightsPageState extends State<FlightsPage> {
 
   /// Deletes the selected flight from database
   Future<void> _deleteFlight(Flights flight) async {
-    await widget.flightDAO.deleteFlights(_selectedFlight!);
+    await flightDAO.deleteFlights(_selectedFlight!);
 
     /// only clear selection if the deleted flight was currently selected.
     setState(() {
@@ -233,7 +272,7 @@ class _FlightsPageState extends State<FlightsPage> {
                   return Container(
                     color: Colors.white.withAlpha(128),);
                 },),
-          ),),
+            ),),
           Positioned.fill(
             child: Padding(
               padding: const EdgeInsets.all(12.0),
@@ -285,7 +324,7 @@ class _FlightsPageState extends State<FlightsPage> {
                                       );
                                     },
                                   )
-                                 : Center(
+                                      : Center(
                                     child: Text("${AppLocalizations.of(context)!.translate('noFlights')}"),
                                   ),
                                 ),
@@ -306,67 +345,67 @@ class _FlightsPageState extends State<FlightsPage> {
                                 ? Center(
                               child: Text("${AppLocalizations.of(context)!.translate('selectFlight')}"),
                             )
-                            : Form(
-                                key: _formKey,
-                                child: ListView(
-                                  children: [
-                                    /// Input field for flight number.
+                                : Form(
+                              key: _formKey,
+                              child: ListView(
+                                children: [
+                                  /// Input field for flight number.
                                   _buildTextField(
-                                      controller: _flightNumberController,
-                                      label: 'Flight Number',
-                                      validator: (value) => value == null || value.isEmpty
-                                          ? AppLocalizations.of(context)!.translate('requiredField')
-                                          : null,
-                                    ),
-                                    /// Input field for departure city.
+                                    controller: _flightNumberController,
+                                    label: 'Flight Number',
+                                    validator: (value) => value == null || value.isEmpty
+                                        ? AppLocalizations.of(context)!.translate('requiredField')
+                                        : null,
+                                  ),
+                                  /// Input field for departure city.
                                   _buildTextField(
-                                      controller: _departureCityController,
-                                      label: "${AppLocalizations.of(context)!.translate('departureCity')}",
-                                      validator: (value) => value == null || value.isEmpty
-                                          ? AppLocalizations.of(context)!.translate('requiredField')
-                                          : null,
-                                    ),
-                                    /// Input field for destination city.
+                                    controller: _departureCityController,
+                                    label: "${AppLocalizations.of(context)!.translate('departureCity')}",
+                                    validator: (value) => value == null || value.isEmpty
+                                        ? AppLocalizations.of(context)!.translate('requiredField')
+                                        : null,
+                                  ),
+                                  /// Input field for destination city.
                                   _buildTextField(
-                                      controller: _destinationCityController,
-                                      label: "${AppLocalizations.of(context)!.translate('destinationCity')}",
-                                      validator: (value) => value == null || value.isEmpty
-                                          ? AppLocalizations.of(context)!.translate('requiredField')
-                                          : null,
-                                    ),
-                                    /// Input field for departure time.
+                                    controller: _destinationCityController,
+                                    label: "${AppLocalizations.of(context)!.translate('destinationCity')}",
+                                    validator: (value) => value == null || value.isEmpty
+                                        ? AppLocalizations.of(context)!.translate('requiredField')
+                                        : null,
+                                  ),
+                                  /// Input field for departure time.
                                   _buildTextField(
-                                      controller: _departureTimeController,
-                                      label: "${AppLocalizations.of(context)!.translate('departureTime')}",
-                                      validator: (value) => value == null || value.isEmpty
-                                          ? AppLocalizations.of(context)!.translate('requiredField')
-                                          : null,
-                                    ),
-                                    /// Input field for arrival time.
+                                    controller: _departureTimeController,
+                                    label: "${AppLocalizations.of(context)!.translate('departureTime')}",
+                                    validator: (value) => value == null || value.isEmpty
+                                        ? AppLocalizations.of(context)!.translate('requiredField')
+                                        : null,
+                                  ),
+                                  /// Input field for arrival time.
                                   _buildTextField(
-                                      controller: _arrivalTimeController,
-                                      label: "${AppLocalizations.of(context)!.translate('arrivalTime')}",
-                                      validator: (value) => value == null || value.isEmpty
-                                          ? AppLocalizations.of(context)!.translate('requiredField')
-                                          : null,
-                                    ),
-                                    const SizedBox(height: 20),
-                                    /// update and save the flight.
-                                    ElevatedButton(
-                                      onPressed: _updateFlight,
-                                      child: Text("${AppLocalizations.of(context)!.translate('update')}"),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    ElevatedButton(
-                                      onPressed: _selectedFlight == null
-                                          ? null
-                                          : () => _deleteFlight(_selectedFlight!),
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                      child: Text("${AppLocalizations.of(context)!.translate('delete')}"),
-                                    ),
-                                  ],
-                                ),
+                                    controller: _arrivalTimeController,
+                                    label: "${AppLocalizations.of(context)!.translate('arrivalTime')}",
+                                    validator: (value) => value == null || value.isEmpty
+                                        ? AppLocalizations.of(context)!.translate('requiredField')
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 20),
+                                  /// update and save the flight.
+                                  ElevatedButton(
+                                    onPressed: _updateFlight,
+                                    child: Text("${AppLocalizations.of(context)!.translate('update')}"),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed: _selectedFlight == null
+                                        ? null
+                                        : () => _deleteFlight(_selectedFlight!),
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red[200]),
+                                    child: Text("${AppLocalizations.of(context)!.translate('delete')}"),
+                                  ),
+                                ],
                               ),
+                            ),
                           ),
                         ],
                       ),
