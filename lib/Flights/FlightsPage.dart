@@ -236,7 +236,22 @@ class _FlightsPageState extends State<FlightsPage> {
     final state = context.findAncestorStateOfType<MyAppState>();
     state?.changeLanguage(locale);
   }
-
+  /// Opens dialog with app instructions
+  void _showHelpDialog() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+            title: Text("${AppLocalizations.of(context)!.translate('Instructions')}"),
+            content: Text("${AppLocalizations.of(context)!.translate('flightInstructions')}"),
+            actions: [
+      TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text("${AppLocalizations.of(context)!.translate('OK')}")
+      ),
+    ],
+    ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final bool hasFlights = _flights.isNotEmpty;
@@ -246,6 +261,11 @@ class _FlightsPageState extends State<FlightsPage> {
         title: Text("${AppLocalizations.of(context)!.translate('flights')}"),
         actions: [
           /// Language selection menu in the AppBar.
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            // tooltip: "${AppLocalizations.of(context)!.translate(' flightInstructions ')}",
+            onPressed: _showHelpDialog,
+          ),
           PopupMenuButton<Locale>(
             icon: const Icon(Icons.language),
             onSelected: (Locale locale) {

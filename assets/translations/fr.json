@@ -102,5 +102,8 @@
   "Cancel": "Annuler",
   "addFlight": "Ajout de vol",
   "Changes saved successfully!": "Modifications enregistrées avec succès !",
-  "Are you sure you want to save changes to this airplane?": "Êtes-vous sûr de vouloir enregistrer les modifications apportées à cet avion ?"
+  "Are you sure you want to save changes to this airplane?": "Êtes-vous sûr de vouloir enregistrer les modifications apportées à cet avion ?",
+  "instructions": "Instructions",
+  "instruction_text": "• Appuyez sur un client pour afficher et modifier ses informations.\n• Appuyez sur le bouton \"+\" pour ajouter un nouveau client.\n• Utilisez l'icône de langue pour basculer entre l'anglais et le français.\n• Appuyez sur \"Mettre à jour\" pour enregistrer les modifications, \"Supprimer\" pour supprimer un client.\n• Appuyez sur \"Fermer\" pour quitter le mode édition.",
+  "flightInstructions": "Instructions de vol"
 }

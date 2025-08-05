@@ -391,7 +391,13 @@ class _CustomerPageState extends State<CustomerPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(t.translate('customer_list') ?? 'Customer List'),
-        actions: [_buildLanguageDropdown()],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: t.translate('instructions') ?? 'Instructions',
+            onPressed: _showInstructionsDialog,
+          ),
+          _buildLanguageDropdown()],
       ),
       body: Stack(
         children: [
@@ -415,5 +421,27 @@ class _CustomerPageState extends State<CustomerPage> {
     addressController.dispose();
     birthDateController.dispose();
     super.dispose();
+  }
+
+  void _showInstructionsDialog() {
+    final t = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(t.translate('instructions') ?? 'Instructions'),
+          content: Text(
+            t.translate('instruction_text') ??
+                'Instructions not available.',
+          ),
+          actions: [
+            TextButton(
+              child: Text(t.translate('close') ?? 'Close'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

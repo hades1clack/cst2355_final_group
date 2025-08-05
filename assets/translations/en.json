@@ -101,5 +101,8 @@
   "Cancel": "Cancel",
   "Add": "Add",
   "Changes saved successfully!": "Changes saved successfully!",
-  "Are you sure you want to save changes to this airplane?":"Are you sure you want to save changes to this airplane?"
+  "Are you sure you want to save changes to this airplane?":"Are you sure you want to save changes to this airplane?",
+  "instructions": "Instructions",
+  "instruction_text": "• Tap a customer to view and edit their details.\n• Press the \"+\" button to add a new customer.\n• Use the language icon to switch between English and French.\n• Press \"Update\" to save changes, \"Delete\" to remove a customer.\n• Press \"Close\" to exit the edit mode.",
+  "flightInstructions": "Flight Instructions"
 }
